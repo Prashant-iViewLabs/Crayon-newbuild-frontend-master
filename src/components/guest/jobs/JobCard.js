@@ -145,22 +145,22 @@ export default function JobCard({ index, job }) {
         if (user === 4) {
           if (profileCompletion === 100) {
             tabs = AUTHORIZED_TAB_ITEMS_EMPLOYER;
-            navigate("employer/my-jobs", { replace: true });
-            setActiveTab("employer/my-jobs");
+            navigate("/employer/my-jobs", { replace: true });
+            setActiveTab("/employer/my-jobs");
           } else {
             tabs = AUTHORIZED_TAB_ITEMS_EMPLOYER;
-            navigate("employer/my-profile", { replace: true });
-            setActiveTab("employer/my-profile");
+            navigate("/employer/my-profile", { replace: true });
+            setActiveTab("/employer/my-profile");
           }
         } else {
           if (profileCompletion === 0) {
             tabs = AUTHORIZED_TAB_ITEMS_CANDIDATE;
-            navigate("candidate/my-jobs", { replace: true });
-            setActiveTab("candidate/my-jobs");
+            navigate("/candidate/my-jobs", { replace: true });
+            setActiveTab("/candidate/my-jobs");
           } else {
             tabs = AUTHORIZED_TAB_ITEMS_CANDIDATE;
-            navigate("candidate/my-profile", { replace: true });
-            setActiveTab("candidate/my-profile");
+            navigate("/candidate/my-profile", { replace: true });
+            setActiveTab("/candidate/my-profile");
           }
         }
         setcurrentTabs(tabs);
@@ -488,6 +488,7 @@ export default function JobCard({ index, job }) {
           {job?.description}
         </TextWrapper>
       </Grid>
+
       <Grid
         container
         spacing={2}
@@ -565,6 +566,7 @@ export default function JobCard({ index, job }) {
           </IconButton>
         ) : null}
       </Grid>
+      
       <Grid
         container
         spacing={2}

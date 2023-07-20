@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { styled, useTheme } from "@mui/material/styles";
 import crayon from "../../assets/crayon_new_logo.png";
@@ -77,6 +77,7 @@ export default function TopBar() {
   const [showLogin, setShowLogin] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const [publicTabs, setPublicTabs] = useState(PUBLIC_TAB_ITEMS);
+  const quickLinksButtonRef = useRef(null);
   // const [open, setOpen] = useState(anchorEl);
 
   const sign = useSelector((state) => state.sign);
@@ -138,7 +139,7 @@ export default function TopBar() {
   };
 
   const handleTabClick = (event, newTab) => {
-    !open && setAnchorEl(event.target);
+    setAnchorEl(quickLinksButtonRef.current);
   };
 
   const signUpHandle = () => {
@@ -402,6 +403,9 @@ export default function TopBar() {
                   >
                     {currentTabs?.map(({ label, path }) => (
                       <Tab
+                        ref={
+                          label === "quick links" ? quickLinksButtonRef : null
+                        }
                         onClick={label == "quick links" && handleTabClick}
                         key={path}
                         value={path}

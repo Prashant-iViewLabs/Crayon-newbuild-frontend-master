@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -23,9 +23,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
-import { Paper } from "@mui/material";
+import { InputLabel, Paper, Popover, Tooltip } from "@mui/material";
 import RadialChart from "../../common/RadialChart";
-import { CARD_RIGHT_BUTTON_GROUP } from "../../../utils/Constants";
+import {
+  ALERT_TYPE,
+  CARD_RIGHT_BUTTON_GROUP,
+  ERROR_MSG,
+} from "../../../utils/Constants";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import ManIcon from "@mui/icons-material/Man";
 import Switch from "@mui/material/Switch";
@@ -43,6 +47,14 @@ import {
   dateConverter,
   dateConverterMonth,
 } from "../../../utils/DateTime";
+import SelectMenu from "../../common/SelectMenu";
+import { useSelector } from "react-redux";
+
+import { useDispatch } from "react-redux";
+import AutoComplete from "../../common/AutoComplete";
+import StyledButton from "../../common/StyledButton";
+import { talentPersonality } from "../../../redux/admin/jobsSlice";
+import { setAlert } from "../../../redux/configSlice";
 
 const label = "grit score";
 const labelExp = "experience";
@@ -226,10 +238,47 @@ function valuetext(value) {
 }
 const labels = ["Salary", "Experience", "Q Level"];
 
+const PERSONALITY = {
+  primary_personality: "",
+  shadow_personality: "",
+  grit_score: "",
+  traits: [],
+};
+
+const marks = [
+  {
+    value: 0,
+    label: "00",
+  },
+  {
+    value: 25,
+    label: "25",
+  },
+  {
+    value: 50,
+    label: "50",
+  },
+  {
+    value: 75,
+    label: "75",
+  },
+  {
+    value: 100,
+    label: "100",
+  },
+];
+
+const textValue = (value) => {
+  return value;
+};
+
 export default function AllTalentCard({
   index,
   talentContent,
   onManageTalent,
+  setPersonalityAdded,
+  traits,
+  personalities,
 }) {
   const {
     chips,
@@ -243,6 +292,7 @@ export default function AllTalentCard({
   } = talentContent;
   const i18n = locale.en;
   const theme = useTheme();
+  const dispatch = useDispatch();
 
   const [gritScoreData, setGritScoreData] = useState([88]);
   const [expScoreData, setExpScoreData] = useState([8]);
@@ -252,22 +302,127 @@ export default function AllTalentCard({
   const [isHovered, setIsHovered] = useState(false);
   const [colorKey, setColorKey] = useState("color");
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-
+  const [anchorElPersonality, setAnchorElPersonality] = useState(null);
   const [value, setValue] = useState([20, 37]);
+  const [personalitiesData, setPersonalitiesData] = useState({
+    ...PERSONALITY,
+  });
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+  const open = Boolean(anchorEl);
+  const openPersonality = Boolean(anchorElPersonality);
+
+  const handlePopoverClose = () => {
+    setAnchorElPersonality(null);
   };
+
+  const handlePersonality = (event, newTab) => {
+    !openPersonality && setAnchorElPersonality(event.target);
+  };
+
+  const handleChange = (event) => {
+    const {
+      target: { value },
+      target: { name },
+    } = event;
+    if (
+      personalitiesData.primary_personality == value ||
+      personalitiesData.shadow_personality == value
+    ) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: "Primary and Shadow Personality should not be similar",
+        })
+      );
+      return;
+    }
+
+    const newPersonalitiesData = {
+      ...personalitiesData,
+      [name]: value,
+    };
+    console.log("NEW PERSONALITY", newPersonalitiesData);
+    setPersonalitiesData(newPersonalitiesData);
+  };
+
+  const handleMultipleAutoComplete = (event, newValue, id) => {
+    if (newValue.length <= 5) {
+      let newPersonalitiesData = {
+        ...personalitiesData,
+        [id]: newValue.map((val) => val?.inputValue || val?.trait_id || val),
+      };
+      console.log(newPersonalitiesData);
+      setPersonalitiesData(newPersonalitiesData);
+    } else {
+      newValue.splice(5, 1);
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: "You can't add more than 5 traits!!",
+        })
+      );
+    }
+  };
+
+  const getTraitsValue = () => {
+    if (personalitiesData.traits?.length == 0) {
+      return [];
+    }
+
+    return personalitiesData.traits?.map(
+      (id) => traits?.find((trait) => trait.id == id) || id
+    );
+  };
+
+  const rangeHandler = (event) => {
+    const {
+      target: { value },
+      target: { name },
+      target: { id },
+    } = event;
+
+    const newPersonalitiesData = {
+      ...personalitiesData,
+      [name]: value,
+    };
+    console.log(newPersonalitiesData);
+    setPersonalitiesData(newPersonalitiesData);
+  };
+
+  const addPersonality = async () => {
+    const data = {
+      ...personalitiesData,
+      user_id: talentContent.user_id,
+    };
+    console.log(data);
+    const { payload } = await dispatch(talentPersonality(data));
+    if (payload?.status == "success") {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.SUCCESS,
+          msg: "Personality Added Successfully",
+        })
+      );
+      setPersonalityAdded(true);
+      setAnchorElPersonality(null);
+    } else {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: "Something went wrong! please relaod the window",
+        })
+      );
+    }
+  };
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleHoverEnter = () => {
-    setColorKey("hover");
-  };
-  const handleHoverLeave = () => {
-    setColorKey("color");
-  };
+
   return (
     <StyledAccordion>
       <AccordionSummary
@@ -353,7 +508,6 @@ export default function AllTalentCard({
               height={18}
               opacity="0.5"
             ></SmallButton>
-            {console.log(dateConverter(talentContent?.created_at))}
             <SmallButton
               color="black100"
               borderRadius="5px"
@@ -948,15 +1102,176 @@ export default function AllTalentCard({
               </Box>
             </Box>
             <Box sx={{ mt: 1 }}>
-              <Typography
+              <Box sx={{ display: "flex" }}>
+                <Typography
+                  sx={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    mr: 1,
+                  }}
+                >
+                  {i18n["allTalent.personality"]}
+                </Typography>
+
+                <Tooltip title={"edit personality"} placement="right-start">
+                  <IconButton
+                    aria-label="edit"
+                    color="blueButton400"
+                    onClick={handlePersonality}
+                    sx={{
+                      padding: "0 !important",
+                      minWidth: "18px !important",
+                      "& .MuiSvgIcon-root": {
+                        width: "18px",
+                      },
+                    }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
+              <Popover
+                id="dropdown-menu"
+                open={openPersonality}
+                anchorEl={anchorElPersonality}
+                onClose={handlePopoverClose}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+                transformOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
                 sx={{
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  mr: 1,
+                  "& .css-ll95b0-MuiPaper-root-MuiPopover-paper": {
+                    padding: "16px",
+                    width: "40%",
+                  },
                 }}
               >
-                {i18n["allTalent.personality"]}
-              </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 3,
+                  }}
+                >
+                  <Box sx={{ width: "100%" }}>
+                    <InputLabel
+                      htmlFor="tags"
+                      sx={{
+                        color: "black",
+                        paddingLeft: "10px",
+                        paddingBottom: "2px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {i18n["postAJob.primaryLabel"]}
+                    </InputLabel>
+                    <SelectMenu
+                      name="primary_personality"
+                      value={personalitiesData?.primary_personality}
+                      onHandleChange={handleChange}
+                      options={personalities}
+                      sx={{ width: "95%" }}
+                      placeholder={
+                        i18n["postAJob.preferredDominantPersonality"]
+                      }
+                    />
+                  </Box>
+                  <Box sx={{ width: "100%" }}>
+                    <InputLabel
+                      htmlFor="tags"
+                      sx={{
+                        color: "black",
+                        paddingLeft: "10px",
+                        paddingBottom: "2px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {i18n["postAJob.shadowLabel"]}
+                    </InputLabel>
+
+                    <SelectMenu
+                      name="shadow_personality"
+                      value={personalitiesData?.shadow_personality}
+                      onHandleChange={handleChange}
+                      options={personalities}
+                      sx={{ width: "95%" }}
+                      placeholder={i18n["postAJob.preferredShadowPersonality"]}
+                    />
+                  </Box>
+                </Box>
+
+                <Box sx={{ width: "100%" }}>
+                  <InputLabel
+                    htmlFor="tags"
+                    sx={{
+                      color: "black",
+                      paddingLeft: "10px",
+                      paddingBottom: "2px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {i18n["postAJob.traitsLabel"]}
+                  </InputLabel>
+
+                  <AutoComplete
+                    multiple={true}
+                    id="traits"
+                    name="traits"
+                    value={getTraitsValue()}
+                    onChange={handleMultipleAutoComplete}
+                    sx={{ width: "95%", display: "inline-table" }}
+                    placeholder={i18n["postAJob.preferredShadowPersonality"]}
+                    data={traits}
+                    limitTags={5}
+                  ></AutoComplete>
+                </Box>
+
+                <Box sx={{ width: "100%" }}>
+                  <InputLabel
+                    htmlFor="tags"
+                    sx={{
+                      color: "black",
+                      paddingLeft: "10px",
+                      paddingBottom: "2px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {i18n["postAJob.gritScoreLabel"]}
+                  </InputLabel>
+
+                  <Slider
+                    name="grit_score"
+                    aria-label="Custom marks"
+                    color="redButton100"
+                    value={personalitiesData?.grit_score}
+                    getAriaValueText={textValue}
+                    step={1}
+                    onChange={(event) => rangeHandler(event)}
+                    valueLabelDisplay="auto"
+                    valueLabelFormat={textValue}
+                    marks={marks}
+                    sx={{ width: "88%", ml: 2 }}
+                  />
+                </Box>
+
+                <StyledButton
+                  sx={{ mr: 0 }}
+                  variant="contained"
+                  color="redButton100"
+                  onClick={addPersonality}
+                >
+                  {i18n["allTalent.addPersonality"]}
+                </StyledButton>
+              </Popover>
               <Box
                 sx={{
                   display: "flex",
@@ -967,7 +1282,14 @@ export default function AllTalentCard({
                   <SingleRadialChart
                     hollow="55%"
                     labelsData={label}
-                    series={gritScoreData}
+                    series={
+                      talentContent?.candidate_profile?.candidate_info
+                        ?.grit_score != null &&
+                      toString(
+                        talentContent?.candidate_profile?.candidate_info
+                          ?.grit_score
+                      )
+                    }
                     width={86}
                     nameSize="9px"
                     valueSize="14px"
@@ -984,76 +1306,57 @@ export default function AllTalentCard({
                       mb: 1,
                     }}
                   >
-                    <SmallButton
-                      fontWeight={500}
-                      minWidth="10px"
-                      height={25}
-                      color="purpleButton"
-                      borderRadius="5px"
-                      label={i18n["allTalent.challenger"]}
-                      mr="4px"
-                    ></SmallButton>
-                    <SmallButton
-                      fontWeight={500}
-                      minWidth="10px"
-                      height={25}
-                      color="brownButton"
-                      borderRadius="5px"
-                      label={i18n["allTalent.collaborator"]}
-                      mr="4px"
-                    ></SmallButton>
+                    {talentContent?.candidate_profile?.candidate_info?.primary
+                      ?.name != null && (
+                      <SmallButton
+                        fontWeight={500}
+                        minWidth="10px"
+                        height={25}
+                        color="purpleButton"
+                        borderRadius="5px"
+                        label={
+                          talentContent?.candidate_profile?.candidate_info
+                            ?.primary?.name
+                        }
+                        mr="4px"
+                      ></SmallButton>
+                    )}
+
+                    {talentContent?.candidate_profile?.candidate_info?.shadow
+                      ?.name != null && (
+                      <SmallButton
+                        fontWeight={500}
+                        minWidth="10px"
+                        height={25}
+                        color="brownButton"
+                        borderRadius="5px"
+                        label={
+                          talentContent?.candidate_profile?.candidate_info
+                            ?.shadow?.name
+                        }
+                        mr="4px"
+                      ></SmallButton>
+                    )}
                   </Box>
                   <Box>
-                    <SmallButton
-                      fontWeight={500}
-                      minWidth="10px"
-                      textColor={theme.palette.black100.main}
-                      height={25}
-                      color="grayButton200"
-                      borderRadius="5px"
-                      label={i18n["allTalent.detailed"]}
-                      mr="4px"
-                    ></SmallButton>
-                    <SmallButton
-                      fontWeight={500}
-                      minWidth="10px"
-                      textColor={theme.palette.black100.main}
-                      height={25}
-                      color="grayButton200"
-                      borderRadius="5px"
-                      label={i18n["allTalent.adaptable"]}
-                      mr="4px"
-                    ></SmallButton>
-                    <SmallButton
-                      fontWeight={500}
-                      minWidth="10px"
-                      textColor={theme.palette.black100.main}
-                      height={25}
-                      color="grayButton200"
-                      borderRadius="5px"
-                      label={i18n["allTalent.organised"]}
-                      mr="4px"
-                    ></SmallButton>
-                    <SmallButton
-                      fontWeight={500}
-                      minWidth="10px"
-                      textColor={theme.palette.black100.main}
-                      height={25}
-                      color="grayButton200"
-                      borderRadius="5px"
-                      label={i18n["allTalent.proactive"]}
-                      mr="4px"
-                    ></SmallButton>
-                    <SmallButton
-                      fontWeight={500}
-                      minWidth="10px"
-                      textColor={theme.palette.black100.main}
-                      height={25}
-                      color="grayButton200"
-                      borderRadius="5px"
-                      label={i18n["allTalent.thrivesOnStress"]}
-                      mr="4px"
-                    ></SmallButton>
+                    {talentContent?.candidate_profile?.candidate_traits
+                      ?.length > 0 &&
+                      talentContent?.candidate_profile?.candidate_traits.map(
+                        (item) => {
+                          return (
+                            <SmallButton
+                              fontWeight={500}
+                              minWidth="10px"
+                              textColor={theme.palette.black100.main}
+                              height={25}
+                              color="grayButton200"
+                              borderRadius="5px"
+                              label={item?.trait?.name}
+                              mr="4px"
+                            ></SmallButton>
+                          );
+                        }
+                      )}
                   </Box>
                 </Box>
               </Box>

@@ -18,13 +18,12 @@ import CustomCard from "../../common/CustomCard";
 import PlaceIcon from "@mui/icons-material/Place";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-
 import ButtonMenu from "../../employer/myJobs/ButtonMenu";
 import TextWrapper from "../../common/TextWrapper";
 import CustomDialog from "../../common/CustomDialog";
 import ManageJob from "../../employer/myJobs/ManageJob";
 import { convertDatetimeAgo } from "../../../utils/DateTime";
-import { MenuItem, Tooltip } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import SelectMenu from "../../common/SelectMenu";
 import { useSelector } from "react-redux";
 import { getMyStatusFilter } from "../../../redux/candidate/myStatusFilter";
@@ -32,7 +31,11 @@ import { useDispatch } from "react-redux";
 import { changeStatus } from "../../../redux/candidate/candidateJobs";
 import { setAlert } from "../../../redux/configSlice";
 import { ALERT_TYPE } from "../../../utils/Constants";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import Menu from "@mui/material/Menu";
+import Fade from "@mui/material/Fade";
 import TrackButton from "./TrackButton";
+
 const label1 = "applicants";
 const label2 = "shortlisted";
 const label3 = "interviews";
@@ -53,7 +56,6 @@ export default function MyJobsCard({ index, job, getJobs }) {
   const [openManageJobDialog, setOpenManageJobDialog] = useState(false);
   const myStatus = useSelector((state) => state.configMyStatus.mystatusfilter);
 
-
   const [arrSlider, setArrSlider] = useState([
     job?.industry_jobs[0],
     job?.type,
@@ -66,7 +68,14 @@ export default function MyJobsCard({ index, job, getJobs }) {
     ...(job?.job_traits || []),
   ]);
 
-  
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleCandidateStatus = async (event) => {
     const {
@@ -176,61 +185,60 @@ export default function MyJobsCard({ index, job, getJobs }) {
           {job?.stage?.name && (
             <SmallButton color="lightGreenButton300" label={job?.stage?.name} />
           )}
-          <TrackButton/>
-          {/* <Box
+          <TrackButton />
+          {/*<Box
+          sx={{
+            height: 43,
+            width: 43,
+            maxHeight: { xs: 43 },
+            maxWidth: { xs: 43 },
+            borderRadius: "6px",
+            background: theme.palette.purpleButton300.main,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            margin: "0 8px",
+          }}
+        >
+          <Box
+            component="img"
+            sx={{
+              height: 25,
+              width: 25,
+              maxHeight: { xs: 25 },
+              maxWidth: { xs: 25 },
+            }}
+            alt="job_volume"
+            src={job_volume}
+          />
+        </Box>
+        {isStar ? (
+          <Box
+            component="img"
             sx={{
               height: 43,
               width: 43,
               maxHeight: { xs: 43 },
               maxWidth: { xs: 43 },
-              borderRadius: "6px",
-              background: theme.palette.purpleButton300.main,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              margin: "0 8px",
+              mr: 1,
             }}
-          >
-            <Box
-              component="img"
-              sx={{
-                height: 25,
-                width: 25,
-                maxHeight: { xs: 25 },
-                maxWidth: { xs: 25 },
-              }}
-              alt="job_volume"
-              src={job_volume}
-            />
-          </Box>
-          {isStar ? (
-            <Box
-              component="img"
-              sx={{
-                height: 43,
-                width: 43,
-                maxHeight: { xs: 43 },
-                maxWidth: { xs: 43 },
-                mr: 1,
-              }}
-              alt="job_star_selected"
-              src={job_star_selected}
-            />
-          ) : (
-            <Box
-              component="img"
-              sx={{
-                height: 43,
-                width: 43,
-                maxHeight: { xs: 43 },
-                maxWidth: { xs: 43 },
-                mr: 1,
-              }}
-              alt="job_star"
-              src={job_star}
-            />
-          )} */}
-
+            alt="job_star_selected"
+            src={job_star_selected}
+          />
+        ) : (
+          <Box
+            component="img"
+            sx={{
+              height: 43,
+              width: 43,
+              maxHeight: { xs: 43 },
+              maxWidth: { xs: 43 },
+              mr: 1,
+            }}
+            alt="job_star"
+            src={job_star}
+          />
+        )}*/}
         </Box>
       </Grid>
 
@@ -329,17 +337,17 @@ export default function MyJobsCard({ index, job, getJobs }) {
           minHeight={25}
           sx={
             job?.industry_jobs.length <= 1 &&
-              job?.type !== "" &&
-              job?.work_setup !== ""
+            job?.type !== "" &&
+            job?.work_setup !== ""
               ? {
-                width: "100%",
-                display: "flex",
-              }
+                  width: "100%",
+                  display: "flex",
+                }
               : {
-                width: "100%",
-                display: "flex",
-                overflow: "hidden",
-              }
+                  width: "100%",
+                  display: "flex",
+                  overflow: "hidden",
+                }
           }
         >
           {arrSlider
@@ -352,8 +360,8 @@ export default function MyJobsCard({ index, job, getJobs }) {
                       item?.industry?.name
                         ? "blueButton600"
                         : item === ""
-                          ? ""
-                          : "blueButton700"
+                        ? ""
+                        : "blueButton700"
                     }
                     height={25}
                     // label={item?.industry ? item?.industry?.name : item}
@@ -411,17 +419,17 @@ export default function MyJobsCard({ index, job, getJobs }) {
         <Box
           sx={
             job?.job_traits.length <= 1 &&
-              job?.primary?.name !== "" &&
-              job?.shadow?.name !== ""
+            job?.primary?.name !== "" &&
+            job?.shadow?.name !== ""
               ? {
-                width: "65%",
-                display: "flex",
-              }
+                  width: "65%",
+                  display: "flex",
+                }
               : {
-                width: "65%",
-                display: "flex",
-                overflow: "hidden",
-              }
+                  width: "65%",
+                  display: "flex",
+                  overflow: "hidden",
+                }
           }
         >
           {arrSlider2
@@ -511,12 +519,20 @@ export default function MyJobsCard({ index, job, getJobs }) {
             options={myStatus.filter((status) => status.id !== 1111)}
             sx={{
               width: "94%",
-              color: "white",
+              // color: theme.palette.base.main,
               backgroundColor:
-                (job?.candidate_status == "pending" && "#F8B318") ||
-                (job?.candidate_status == "i like this" && "#FF934A") ||
-                (job?.candidate_status == "i love this" && "#B6C773") ||
-                (job?.candidate_status == "not for me" && "#F05D61"),
+                (job?.candidate_status == "pending" &&
+                  theme.status.pending.main) ||
+                (job?.candidate_status == "i like this" &&
+                  theme.status.ilikethis.main) ||
+                (job?.candidate_status == "i love this" &&
+                  theme.status.ilovethis.main) ||
+                (job?.candidate_status == "not for me" &&
+                  theme.status.notforme.main),
+              "& .css-1g66942-MuiInputBase-root-MuiOutlinedInput-root-MuiSelect-root":
+                {
+                  color: theme.palette.base.main,
+                },
             }}
           />
         </Box>
@@ -531,14 +547,17 @@ export default function MyJobsCard({ index, job, getJobs }) {
               borderRadius: "5px",
               margin: 0,
               backgroundColor:
-                (job?.job_status?.name == "paused" && "#FF934A") ||
-                (job?.job_status?.name == "closed" && "#F05D61") ||
-                (job?.job_status?.name == "rejected" && "#F05D61") ||
-                (job?.job_status?.name == "active" && "#B6C773"),
+                (job?.job_status?.name == "paused" &&
+                  theme.status.paused.main) ||
+                (job?.job_status?.name == "closed" &&
+                  theme.status.closed.main) ||
+                (job?.job_status?.name == "rejected" &&
+                  theme.status.rejected.main) ||
+                (job?.job_status?.name == "active" && theme.status.active.main),
             }}
             variant="contained"
-          // color="redButton100"
-          // onClick={handleClick}
+            // color="redButton100"
+            // onClick={handleClick}
           >
             job status: {job?.job_status?.name}
           </Button>

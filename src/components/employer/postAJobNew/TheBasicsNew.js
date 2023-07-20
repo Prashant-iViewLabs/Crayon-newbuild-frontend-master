@@ -215,10 +215,12 @@ export default function TheBasics({ changeStep }) {
         const experience = basic.experience.map((item) => {
           return item * 10;
         });
-
-        console.log(basic);
-        console.log(basic.experience);
-        console.log(experience);
+        if (basic?.country_id != null) {
+          let temp = town.filter((val) => {
+            return val.region_id == basic?.country_id;
+          });
+          setTownsMain(temp);
+        }
         setExpRange(experience);
         setRangeValue(salary);
         setBasicData(basic);
@@ -390,6 +392,8 @@ export default function TheBasics({ changeStep }) {
     } = event;
     let slider = false,
       sliderValue = "";
+
+    console.log(value);
 
     if (name == "salary_id") {
       slider = true;

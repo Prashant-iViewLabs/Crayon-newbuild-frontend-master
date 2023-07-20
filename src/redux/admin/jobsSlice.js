@@ -38,6 +38,16 @@ export const approveJob = createAsyncThunk(
   }
 );
 
+export const talentPersonality = createAsyncThunk(
+  "talentPersonality",
+  async (payload, { dispatch }) => {
+    dispatch(setLoading(true));
+    const { data } = await postApi("/admin/talentPersonality", payload, true);
+    dispatch(setLoading(false));
+    return data;
+  }
+);
+
 export const getAllTalentJobs = createAsyncThunk(
   "getAllTalentJobs",
   async (payload, { dispatch }) => {

@@ -220,6 +220,7 @@ export default function JobCard({
   jobContent,
   onManageTalent,
   getJobList,
+  showManageJob,
 }) {
   const i18n = locale.en;
   const theme = useTheme();
@@ -312,7 +313,11 @@ export default function JobCard({
               component="img"
               className="profileAvatar"
               alt="crayon logo"
-              src={profile}
+              src={
+                jobContent?.profile_url == "No URL"
+                  ? profile
+                  : jobContent?.profile_url
+              }
               sx={{
                 mr: 1,
               }}
@@ -506,7 +511,8 @@ export default function JobCard({
                 return (
                   <SmallButton
                     color="blueButton600"
-                    label={industry?.industry?.name?.slice(0, 15)}
+                    value={industry?.industry?.name}
+                    label={industry?.industry?.name.split(" ")[0]}
                     mr="8px"
                     fontSize="12px"
                   ></SmallButton>
@@ -774,7 +780,8 @@ export default function JobCard({
                   return (
                     <SmallButton
                       color="blueButton600"
-                      label={industry?.industry?.name}
+                      value={industry?.industry?.name}
+                      label={industry?.industry?.name.split(" ")[0]}
                       mr="8px"
                       fontSize="12px"
                     ></SmallButton>
@@ -1108,7 +1115,7 @@ export default function JobCard({
                   }}
                   variant="contained"
                   color="redButton"
-                  // onClick={() => showManageJob()}
+                  onClick={() => showManageJob()}
                 >
                   {i18n["pendingJobs.managebtn"]}
                 </Button>

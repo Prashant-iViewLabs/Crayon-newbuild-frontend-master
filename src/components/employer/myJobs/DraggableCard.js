@@ -9,7 +9,14 @@ import { Draggable } from "react-beautiful-dnd";
 import { styled } from "@mui/material/styles";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
-import { Box, IconButton, Tooltip } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  InputBase,
+  Paper,
+  Popover,
+  Tooltip,
+} from "@mui/material";
 import PlaceIcon from "@mui/icons-material/Place";
 import profile from "../../../assets/profile2.svg";
 import drag_dots from "../../../assets/drag_dots.svg";
@@ -30,7 +37,11 @@ import CloseIcon from "@mui/icons-material/Close";
 import RadialChart from "../../common/RadialChart";
 import ManIcon from "@mui/icons-material/Man";
 import locale from "../../../i18n/locale";
-import { CARD_RIGHT_BUTTON_GROUP } from "../../../utils/Constants";
+import {
+  ALERT_TYPE,
+  CARD_RIGHT_BUTTON_GROUP,
+  ERROR_MSG,
+} from "../../../utils/Constants";
 import SmallButton from "../../common/SmallButton";
 import SingleRadialChart from "../../common/SingleRadialChart";
 import CircularProgress, {
@@ -41,6 +52,11 @@ import LinearProgress, {
 } from "@mui/material/LinearProgress";
 import { convertDOB } from "../../../utils/DateTime";
 import CustomDialog from "../../common/CustomDialog";
+import { setAlert } from "../../../redux/configSlice";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { getCandidateCV, getQandA } from "../../../redux/employer/myJobsSlice";
+import { data } from "./ManageJob";
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
   height: 5,
@@ -190,37 +206,101 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
 
 const StyledVR = styled(Box)(({ theme }) => ({
   borderBottom: "1px solid rgba(0, 0, 0, 0.3)",
-  // width: "30px",
   height: "10px",
-  marginRight: "8px",
 }));
 
 const labels = ["Applicants", "Shortlisted", "Interviews"];
 
 const label = "match";
 
-export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
+export default function DraggableCard({
+  item,
+  index,
+  droppableId,
+  onDragEnd,
+  jobId,
+}) {
   const theme = useTheme();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const i18n = locale.en;
   const [chartData, setChartData] = useState([88]);
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
-
-  const [colorKey, setColorKey] = useState("color");
-
-  const handleHoverEnter = () => {
-    setColorKey("hover");
-  };
-  const handleHoverLeave = () => {
-    setColorKey("color");
-  };
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorElQandA, setAnchorElQandA] = useState(null);
+  const [openQandADialog, setOpenQandADialog] = useState(false);
+  const [questionAnswer, setQuestionAnswer] = useState([]);
 
   const onHandleClose = () => {
     setOpenInfoDialog(false);
+    setAnchorEl(null);
   };
 
-  const handleInfoDialog = () => {
+  const handleInfoDialog = (event) => {
     setOpenInfoDialog(true);
+    !openInfoDialog && setAnchorEl(event.target);
+  };
+
+  const onHandleCloseQandA = () => {
+    setOpenQandADialog(false);
+    setAnchorElQandA(null);
+  };
+
+  const handleQandADialog = async (event) => {
+    try {
+      const data = {
+        job_id: jobId,
+        user_id: item?.user_id,
+      };
+      const { payload } = await dispatch(getQandA(data));
+      if (payload?.status == "success") {
+        console.log(payload?.data);
+        setQuestionAnswer(payload?.data);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.error,
+          })
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+
+    setOpenQandADialog(true);
+    !openQandADialog && setAnchorElQandA(event.target);
+  };
+
+  const handleCandidateCV = async () => {
+    try {
+      const { payload } = await dispatch(
+        getCandidateCV({ user_id: item?.user_id })
+      );
+
+      if (payload?.status == "success") {
+        const cvData = payload.data;
+        navigate(`/candidate-cv/${item?.user_id}`, { state: cvData });
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
   };
 
   const handleReject = () => {
@@ -318,18 +398,25 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                     }
                   />
                   <Box sx={{ marginLeft: "4px" }}>
-                    <Typography
-                      sx={{
-                        fontWeight: 700,
-                        mr: 1,
-                        fontSize: "14px",
-                        // width: "100px",
-                        // textWrap: "nowrap",
-                        // overflow: "hidden",
-                      }}
+                    <Tooltip
+                      title={item?.first_name + " " + item?.last_name}
+                      placement="top-end"
                     >
-                      {item?.first_name + " " + item?.last_name}
-                    </Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          mr: 1,
+                          fontSize: "14px",
+                          width: "100px",
+                          whiteSpace: "nowrap", // Prevents text from wrapping
+                          overflow: "hidden", // Hides any overflowing content
+                          textOverflow: "ellipsis", // Adds dots at the end of overflowing text
+                        }}
+                      >
+                        {item?.first_name + " " + item?.last_name}
+                      </Typography>
+                    </Tooltip>
+
                     <Box
                       sx={{
                         display: "flex",
@@ -445,6 +532,7 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                       label={i18n["draggableCard.qAnda"]}
                       mr="4px"
                       borderRadius="25px"
+                      onClick={handleQandADialog}
                     ></SmallButton>
                   </Box>
                 )}
@@ -617,7 +705,9 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                   label={i18n["draggableCard.cv"]}
                   mr="4px"
                   borderRadius="25px"
+                  onClick={handleCandidateCV}
                 ></SmallButton>
+
                 <SmallButton
                   color="redButton"
                   startIcon={
@@ -634,29 +724,111 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                   label={i18n["draggableCard.qAnda"]}
                   mr="4px"
                   borderRadius="25px"
+                  onClick={handleQandADialog}
                 ></SmallButton>
+                <Popover
+                  id="dropdown-menu"
+                  open={openQandADialog}
+                  anchorEl={anchorElQandA}
+                  onClose={onHandleCloseQandA}
+                  anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "center",
+                  }}
+                  transformOrigin={{
+                    vertical: "bottom",
+                    horizontal: "center",
+                  }}
+                  sx={{
+                    width: "100% !important",
+                    "& .css-ll95b0-MuiPaper-root-MuiPopover-paper": {
+                      padding: "16px",
+                    },
+                  }}
+                >
+                  <Box sx={{ mt: 1 }}>
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        mr: 1,
+                      }}
+                    >
+                      {i18n["pendingJobs.jobquestions"]}
+                    </Typography>
+                    <Box sx={{ display: "flex" }}>
+                      <Box sx={{ width: "90%" }}>
+                        {questionAnswer.map((questions, index) => {
+                          return (
+                            <>
+                              <Typography
+                                sx={{
+                                  fontSize: "14px",
+                                  fontWeight: 400,
+                                  mr: 1,
+                                  mt: 1,
+                                }}
+                              >
+                                Question #{index + 1}: {questions?.question}
+                              </Typography>
+                              <Paper
+                                sx={{
+                                  display: "flex",
+                                  height: "30px",
+                                  borderRadius: "25px",
+                                  boxShadow: "none",
+                                  border: `1px solid ${theme.palette.grayBorder}`,
+                                }}
+                              >
+                                <InputBase
+                                  disabled
+                                  sx={{ ml: 2, mr: 2 }}
+                                  id="password"
+                                  value={questions?.answer}
+                                  type="text"
+                                  placeholder={i18n["pendingJobs.answer"]}
+                                />
+                              </Paper>
+                            </>
+                          );
+                        })}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Popover>
               </Box>
               <Box
                 sx={{
                   mt: 1,
                 }}
               >
-                <SmallButton
-                  color="purpleButton"
-                  height={25}
-                  letterSpacing="0"
-                  p="8px"
-                  label={i18n["draggableCard.challenger"]}
-                  mr="8px"
-                />
-                <SmallButton
-                  color="brownButton"
-                  height={25}
-                  letterSpacing="0"
-                  p="8px"
-                  label={i18n["draggableCard.collaborator"]}
-                  mr="8px"
-                />
+                {item?.candidate_profile?.candidate_info?.primary?.name !=
+                  null && (
+                  <SmallButton
+                    color="purpleButton"
+                    height={25}
+                    letterSpacing="0"
+                    p="8px"
+                    label={
+                      item?.candidate_profile?.candidate_info?.primary?.name
+                    }
+                    mr="8px"
+                  />
+                )}
+
+                {item?.candidate_profile?.candidate_info?.shadow?.name !=
+                  null && (
+                  <SmallButton
+                    color="brownButton"
+                    height={25}
+                    letterSpacing="0"
+                    p="8px"
+                    label={
+                      item?.candidate_profile?.candidate_info?.shadow?.name
+                    }
+                    mr="8px"
+                  />
+                )}
               </Box>
               <Box
                 sx={{
@@ -713,18 +885,39 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                       letterSpacing: "0.25px",
                     }}
                   >
-                    Qualification Lv:{" "}
+                    Qualification Lv:
                     {
                       item?.candidate_profile?.candidate_info
                         ?.highest_qualification?.highest_
                     }
-                    (
-                    {
-                      item?.candidate_profile?.candidate_info
-                        ?.highest_qualification?.descript
-                    }
-                    )
+                    <Tooltip
+                      title={
+                        item?.candidate_profile?.candidate_info
+                          ?.highest_qualification?.descript
+                      }
+                      placement="top-end"
+                    >
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: 12,
+                          letterSpacing: "0.25px",
+                          width: "150px",
+                          whiteSpace: "nowrap", // Prevents text from wrapping
+                          overflow: "hidden", // Hides any overflowing content
+                          textOverflow: "ellipsis", // Adds dots at the end of overflowing text
+                        }}
+                      >
+                        (
+                        {
+                          item?.candidate_profile?.candidate_info
+                            ?.highest_qualification?.descript
+                        }
+                        )
+                      </Typography>
+                    </Tooltip>
                   </Typography>
+
                   <BorderLinearProgress
                     variant="determinate"
                     value={
@@ -801,19 +994,32 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                   </Box>
                 </Tooltip>
 
-                <CustomDialog
-                  show={openInfoDialog}
-                  hideButton={false}
-                  onDialogClose={onHandleClose}
-                  // dialogWidth="sm"
-                  showFooter={false}
-                  isInfo
+                <Popover
+                  id="dropdown-menu"
+                  open={openInfoDialog}
+                  anchorEl={anchorEl}
+                  onClose={onHandleClose}
+                  anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "left",
+                  }}
+                  transformOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                  sx={{
+                    width: "16% !important",
+                    "& .css-ll95b0-MuiPaper-root-MuiPopover-paper": {
+                      padding: "16px 0 16px 0",
+                    },
+                  }}
                 >
                   <Box
                     sx={{
                       display: "flex",
                       justifyContent: "flex-start",
                       alignItems: "center",
+                      padding: "8px 16px 8px 16px",
                     }}
                   >
                     <IconButton
@@ -851,6 +1057,7 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                       sx={{
                         mr: "4px",
                         padding: "0 !important",
+                        color: "blue",
                         minWidth: "25px !important",
                         "& .MuiSvgIcon-root": {
                           width: "25px",
@@ -863,8 +1070,9 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                   <Box
                     sx={{
                       display: "flex",
-                      justifyContent: "space-between",
+                      // justifyContent: "space-between",
                       alignItems: "center",
+                      padding: "8px 16px 8px 16px",
                     }}
                   >
                     <IconButton
@@ -900,6 +1108,8 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                         mr: "4px",
                         padding: "0 !important",
                         minWidth: "25px !important",
+                        color: "blue",
+                        marginLeft: "auto",
                         "& .MuiSvgIcon-root": {
                           width: "25px",
                         },
@@ -964,7 +1174,7 @@ export default function DraggableCard({ item, index, droppableId, onDragEnd }) {
                       />
                     </Box>
                   </Box>
-                </CustomDialog>
+                </Popover>
 
                 <Box
                   sx={{

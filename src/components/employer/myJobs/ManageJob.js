@@ -16,10 +16,16 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { ALERT_TYPE, ERROR_MSG } from "../../../utils/Constants";
 import { KeyboardArrowUp, KeyboardArrowUpOutlined } from "@mui/icons-material";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { Typography } from "@mui/material";
+import { Button, MenuList, Typography } from "@mui/material";
+import salary from "../../../assets/salary.svg";
+import experience from "../../../assets/experience.svg";
+import qualification from "../../../assets/qualification.svg";
+import personality from "../../../assets/personality.svg";
+// import SelectMultiple from "../../common/SelectMultiple";
+import sortLogo from "../../../assets/sort_logo.svg";
+import Menu from "@mui/material/Menu";
+import Fade from "@mui/material/Fade";
 import SortButton from "./SortButton";
-
-
 
 const StyledBox = (props) => {
   const { children, color, jobId, column } = props;
@@ -27,24 +33,22 @@ const StyledBox = (props) => {
   return (
     <Box
       sx={{
-        width: 1,
         height: 37,
         backgroundColor: theme.palette[color].main,
-        borderRadius: '0px 0px 20px 20px',
+        borderRadius: "0 0 20px 20px",
         color: theme.palette.white,
         justifyContent: "space-between",
         display: "flex",
         alignItems: "center",
         fontWeight: 500,
-        padding: '0 20px',
         cursor: "pointer",
+        padding: "0 20px",
       }}
     >
       {children}
     </Box>
   );
 };
-
 export const data = [
   {
     id: "1",
@@ -119,7 +123,23 @@ export const columnsFromBackend = {
 export default function ManageJob({ jobId, talents, setTalents }) {
   const theme = useTheme();
   const dispatch = useDispatch();
+  const [isSort, setIsSort] = useState(false);
 
+  const sortingOptions = [
+    "A to Z",
+    "Lowest Salary",
+    "Highest Salary",
+    "Lowest QL",
+    "Highest Ql",
+  ];
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleMoveJobApplicationStatus = async (
     jobId,
@@ -211,10 +231,9 @@ export default function ManageJob({ jobId, talents, setTalents }) {
     }
   };
 
-
   return (
     <DragDropContext onDragEnd={(result) => onDragEnd(result)}>
-      <Box sx={{ display: "flex", position: 'sticky', left: 0 }}>
+      <Box sx={{ display: "flex", position: "sticky", left: "0" }}>
         <Typography sx={{ margin: "8px", padding: "20px" }}>Filter</Typography>
         <Box
           sx={{
@@ -225,7 +244,34 @@ export default function ManageJob({ jobId, talents, setTalents }) {
             height: "90px",
             borderRadius: "25px",
           }}
-        ></Box>
+        >
+          <Box>
+            <Box
+              sx={{
+                mr: 1,
+                width: "43px",
+                height: "43px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "8px",
+              }}
+            >
+              <Box
+                component="img"
+                className="dragDots"
+                alt="drag dots"
+                src={salary}
+                sx={{
+                  width: "43px",
+                  height: "43px",
+                  cursor: "pointer",
+                }}
+              />
+            </Box>
+            <Typography>Salary</Typography>
+          </Box>
+        </Box>
       </Box>
 
       <Box sx={{ display: "flex", maxHeight: "100%" }}>
@@ -249,13 +295,20 @@ export default function ManageJob({ jobId, talents, setTalents }) {
                     column={column}
                     jobId={jobId}
                   >
-                    <Box sx={{
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
                       {column?.status} ({column?.count})
                     </Box>
-                    <SortButton/>
+                    <SortButton
+                      jobId={jobId}
+                      jobStatusId={column?.id}
+                      setIsSort={setIsSort}
+                      setTalents={setTalents}
+                    />
                   </StyledBox>
                   <Box id="talentList" sx={{ height: "100%" }}>
                     <InfiniteScroll
@@ -282,6 +335,7 @@ export default function ManageJob({ jobId, talents, setTalents }) {
                           index={index}
                           droppableId={column?.id}
                           onDragEnd={onDragEnd}
+                          jobId={jobId}
                         />
                       ))}
                       <style>

@@ -12,6 +12,8 @@ import {
   JOBS_RIGHT_JOB_TYPES_BUTTON_GROUP,
   JOBS_RIGHT_POSTS_BUTTON_GROUP,
   JOBS_RIGHT_STAGES_BUTTON_GROUP,
+  TALENT_RIGHT_JOB_ACTIVITY_BUTTON_GROUP,
+  TALENT_RIGHT_JOB_TYPES_BUTTON_GROUP,
 } from "../../../utils/Constants";
 import locale from "../../../i18n/locale";
 import InfiniteScroll from "react-infinite-scroll-component";
@@ -25,17 +27,17 @@ import { getAllJobRoleType } from "../../../redux/jobRole";
 import { getAllStages } from "../../../redux/stages";
 import { get } from "lodash";
 import jwt_decode from "jwt-decode";
+import { getAllTypes } from "../../../redux/allTypes";
 
 export default function Talent() {
   const i18n = locale.en;
   const theme = useTheme();
   const dispatch = useDispatch();
   const allIndustries = useSelector((state) => state.config.industries);
-  const allJobTypes = useSelector((state) => state.jobtype.jobRoleType);
-  const allStages = useSelector((state) => state.configstages.stages);
+  const allTypes = useSelector((state) => state.configAllTypes?.types);
   const [allJobs, setAllJobs] = useState([]);
   const [filters, setFilters] = useState([allIndustries[0]?.id]);
-  const [filtersTalent, setFiltersTalent] = useState([allIndustries[0]?.id]);
+  const [filtersType, setFiltersType] = useState([allTypes[0]?.id]);
   const [all_talent, setAll_talent] = useState([]);
   const isolateTouch = (e) => {
     e.stopPropagation();
@@ -48,7 +50,7 @@ export default function Talent() {
     decodedToken = jwt_decode(token);
   }
 
-  const getTalent = async (selectedFilters = filtersTalent) => {
+  const getTalent = async (selectedFilters = filters) => {
     if (selectedFilters.length == 0) {
       setAll_talent([]);
     } else if (selectedFilters.length == 1) {
@@ -76,17 +78,28 @@ export default function Talent() {
   const getIndustries = async () => {
     await dispatch(getAllIndustries());
   };
-  const getJobTypes = async () => {
-    await dispatch(getAllJobRoleType());
+  const getTypes = async () => {
+    await dispatch(getAllTypes());
   };
-  const getStages = async () => {
-    await dispatch(getAllStages());
+
+  const onChangeFilter = (selectedFilter) => {
+    setAllJobs([]);
+    // setLastKey("");
+    setFilters(selectedFilter);
+    getTalent(selectedFilter, filtersType);
   };
+
+  const onChangeFilterType = (selectedFilter) => {
+    setAllJobs([]);
+    // setLastKey("");
+    setFiltersType(selectedFilter);
+    getTalent(filters, selectedFilter);
+  };
+
   useEffect(() => {
     getIndustries();
-    getTalent();
-    getJobTypes();
-    getStages();
+    getTypes();
+    getTalent([allIndustries[0]?.id], [allTypes[0]?.id]);
   }, []);
   return (
     <Grid
@@ -96,8 +109,17 @@ export default function Talent() {
       justifyContent="space-between"
     >
       <Box>
-        <ButtonPanel topMargin={true} panelData={allIndustries} side="left" />
-        <ButtonPanel panelData={JOBS_LEFT_TYPES_BUTTON_GROUP} side="left" />
+        <ButtonPanel
+          topMargin={true}
+          panelData={allIndustries}
+          side="left"
+          onChangeFilter={onChangeFilter}
+        />
+        <ButtonPanel
+          panelData={allTypes}
+          side="left"
+          onChangeFilter={onChangeFilterType}
+        />
       </Box>
       <Grid xs={12} sm={6} md={8} lg={9} xl={10}>
         <SearchBar placeholder={i18n["jobs.searchPlaceholder"]} />
@@ -166,9 +188,14 @@ export default function Talent() {
         </Grid>
       </Grid>
       <Box>
-        <ButtonPanel topMargin={true} panelData={allJobTypes} side="right" />
-        <ButtonPanel panelData={allStages} side="right" />
-        <ButtonPanel panelData={JOBS_RIGHT_STAGES_BUTTON_GROUP} side="right" />
+        <ButtonPanel
+          panelData={TALENT_RIGHT_JOB_TYPES_BUTTON_GROUP}
+          side="right"
+        />
+        <ButtonPanel
+          panelData={TALENT_RIGHT_JOB_ACTIVITY_BUTTON_GROUP}
+          side="right"
+        />
       </Box>
     </Grid>
   );

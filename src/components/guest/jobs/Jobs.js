@@ -243,11 +243,7 @@ export default function Jobs() {
           side="left"
           onChangeFilter={onChangeFilter}
         />
-        <ButtonPanel
-          panelData={allTypes}
-          side="left"
-          onChangeFilter={onChangeFilterType}
-        />
+        
       </Box>
       <Grid xs={12} sm={6} md={8} lg={9} xl={10}>
         <SearchBar
@@ -347,6 +343,11 @@ export default function Jobs() {
           panelData={JOBS_RIGHT_STAGES_BUTTON_GROUP}
           onChangeFilter={onChangeFilterAllTypes}
           side="right"
+        />
+        <ButtonPanel
+          panelData={allTypes}
+          side="left"
+          onChangeFilter={onChangeFilterType}
         />
       </Box>
     </Grid>

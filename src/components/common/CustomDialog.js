@@ -13,7 +13,7 @@ import locale from "../../i18n/locale";
 import Paper from "@mui/material/Paper";
 
 const StyledDialog = styled(Dialog)(
-  ({ theme, isApplyJob, isTalentMyJobsDialog, isProfile, isInfo }) => ({
+  ({ theme, isApplyJob, isTalentMyJobsDialog, isProfile }) => ({
     "& .MuiDialog-container": {
       height: (isApplyJob && "auto") || (isTalentMyJobsDialog && "100%"),
     },
@@ -23,13 +23,11 @@ const StyledDialog = styled(Dialog)(
         (isApplyJob && "65%") ||
         (isTalentMyJobsDialog && "100%") ||
         (isProfile && "92%"),
-      padding: isTalentMyJobsDialog && "16px",
-      width: isInfo && "21%",
+      padding: isTalentMyJobsDialog ? "16px" : "",
     },
     "& .MuiDialogContent-root": {
       padding: theme.spacing(2),
       overflowY: isTalentMyJobsDialog && "hidden",
-      overflowX: isInfo && "hidden",
     },
     "& .MuiDialogActions-root": {
       padding: theme.spacing(1),

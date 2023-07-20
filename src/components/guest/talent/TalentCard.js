@@ -54,11 +54,30 @@ export default function TalentCard({ index, job }) {
     job?.candidate_profile?.candidate_info?.work_setup,
   ]);
 
+  const [arrSlider2, setArrSlider2] = useState([
+    job?.candidate_profile?.candidate_info?.primary?.name,
+    job?.candidate_profile?.candidate_info?.shadow?.name,
+    ...(job?.candidate_profile?.candidate_traits || []),
+  ]);
+
+  console.log(arrSlider2);
+  console.log(job);
+
   const token = localStorage?.getItem("token");
   let decodedToken;
   if (token) {
     decodedToken = jwt_decode(token);
   }
+
+  const handleRightClick = () => {
+    setArrSlider2([...arrSlider2.slice(1), ...arrSlider2.slice(0, 1)]);
+  };
+  const handleLeftClick = () => {
+    setArrSlider2([
+      ...arrSlider2.slice(arrSlider2.length - 1),
+      ...arrSlider2.slice(0, arrSlider2.length - 1),
+    ]);
+  };
 
   const handleHoverEnter = () => {
     setColorKey("hover");
@@ -365,84 +384,85 @@ export default function TalentCard({ index, job }) {
           {job?.candidate_profile?.my_bio}
         </TextWrapper>
       </Grid>
+
       <Grid
         container
         spacing={2}
-        padding="0 8px 8px 8px"
-        justifyContent="space-around"
-        alignItems="center"
+        padding="0 8px 8px 0px"
+        minHeight={45}
+        sx={
+          arrSlider2.length >= 4
+            ? { justifyContent: "space-evenly", alignItems: "center" }
+            : { ml: 2 }
+        }
       >
-        <IconButton
-          sx={{
-            border: `1px solid ${theme.palette.grayBorder}`,
-            borderRadius: "8px",
-            width: "37px",
-            height: "37px",
-            ml: 1,
-          }}
-          color="redButton100"
-          aria-label="search job"
-          component="button"
-        >
-          <KeyboardArrowLeftIcon />
-        </IconButton>
+        {arrSlider2.length >= 4 ? (
+          <IconButton
+            sx={{
+              border: `1px solid ${theme.palette.grayBorder}`,
+              borderRadius: "8px",
+              width: "37px",
+              height: "37px",
+              ml: 1,
+            }}
+            color="redButton100"
+            aria-label="search job"
+            component="button"
+            onClick={handleLeftClick}
+          >
+            <KeyboardArrowLeftIcon />
+          </IconButton>
+        ) : null}
         <Box
-          sx={{
-            width: "65%",
-            display: "flex",
-            overflow: "hidden",
-          }}
+          sx={
+            job?.candidate_profile?.candidate_traits?.length <= 1 &&
+            job?.candidate_profile?.candidate_info?.primary?.name !== null &&
+            job?.candidate_profile?.candidate_info?.shadow?.name !== null
+              ? {
+                  width: "65%",
+                  display: "flex",
+                }
+              : {
+                  width: "65%",
+                  display: "flex",
+                  overflow: "hidden",
+                }
+          }
         >
-          <SmallButton
-            color="purpleButton"
-            height={25}
-            letterSpacing="0"
-            p="3px"
-            label={i18n["talentCard.challengers"]}
-            mr="4px"
-          />
-          <SmallButton
-            color="brownButton"
-            height={25}
-            letterSpacing="0"
-            p="3px"
-            label={i18n["talentCard.contemplators"]}
-            mr="4px"
-          />
-          <SmallButton
-            color="grayButton200"
-            height={25}
-            letterSpacing="0"
-            p="3px"
-            label={i18n["talentCard.detailed"]}
-            mr="4px"
-            textColor="black"
-          />
-          <SmallButton
-            color="grayButton200"
-            height={25}
-            letterSpacing="0"
-            p="3px"
-            label={i18n["talentCard.detailed"]}
-            mr="4px"
-            textColor="black"
-          />
+          {arrSlider2
+            .filter((item) => item !== null)
+            .map((item, index) => {
+              if (item !== undefined) {
+                return (
+                  <SmallButton
+                    color={item?.trait?.name ? "grayButton200" : "purpleButton"}
+                    height={25}
+                    label={item?.trait ? item?.trait?.name : item}
+                    mr="4px"
+                  />
+                );
+              }
+            })}
         </Box>
-        <IconButton
-          sx={{
-            border: `1px solid ${theme.palette.grayBorder}`,
-            borderRadius: "8px",
-            width: "37px",
-            height: "37px",
-            mr: 1,
-          }}
-          color="redButton100"
-          aria-label="search job"
-          component="button"
-        >
-          <KeyboardArrowRightIcon />
-        </IconButton>
+        {arrSlider2.length >= 4 ? (
+          <IconButton
+            sx={{
+              border: `1px solid ${theme.palette.grayBorder}`,
+              borderRadius: "8px",
+              width: "37px",
+              height: "37px",
+              mr: 1,
+            }}
+            color="redButton100"
+            aria-label="search job"
+            component="button"
+            onClick={handleRightClick}
+          >
+            <KeyboardArrowRightIcon />
+          </IconButton>
+        ) : null}
       </Grid>
+
       <Grid
         container
         spacing={2}

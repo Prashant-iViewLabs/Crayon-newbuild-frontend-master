@@ -14,6 +14,26 @@ export const getManage = createAsyncThunk(
     return data;
   }
 );
+
+export const getQandA = createAsyncThunk(
+  "getQandA",
+  async ({ job_id, user_id }, { dispatch }) => {
+    const { data } = await getApi(
+      `/admin/employer/questionanswer?job_id=${job_id}&user_id=${user_id}`,
+      true
+    );
+    return data;
+  }
+);
+
+export const getCandidateCV = createAsyncThunk(
+  "getCandidateCV",
+  async ({ user_id }, { dispatch }) => {
+    const { data } = await getApi(`/cv/getcvpage?user_id=${user_id}`, true);
+    return data;
+  }
+);
+
 export const statusChange = createAsyncThunk(
   "statusChange",
   async (payload, { dispatch }) => {
@@ -80,6 +100,7 @@ export const getMyJobTeamMemebers = createAsyncThunk(
     return data;
   }
 );
+
 export const myJobsSlice = createSlice({
   name: "myjobs",
   initialState,

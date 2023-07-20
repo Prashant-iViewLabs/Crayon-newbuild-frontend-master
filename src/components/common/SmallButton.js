@@ -40,6 +40,9 @@ export default function SmallButton({
             marginRight: startIconMargin,
             marginLeft: 0,
           },
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
           ...props,
         }}
       >

@@ -6,6 +6,11 @@ const theme = createTheme({
     base: {
       main: "#FFFFFF",
     },
+    cvColor: {
+      main: "#e5f4ff",
+      contrastText: "#FFFFFF",
+      light: "#f1e5ff",
+    },
     redButton: {
       main: "#F05D61",
       contrastText: "#FFFFFF",
@@ -144,6 +149,32 @@ const theme = createTheme({
       green: "#B6C773",
       yellow: "#F09248",
       green200: "#18CA09",
+    },
+  },
+  status: {
+    pending: {
+      main: "#F8B318",
+    },
+    ilikethis: {
+      main: "#FF934A",
+    },
+    ilovethis: {
+      main: "#B6C773",
+    },
+    notforme: {
+      main: "#F05D61",
+    },
+    active: {
+      main: "#B6C773",
+    },
+    paused: {
+      main: "#FF934A",
+    },
+    closed: {
+      main: "#F05D61",
+    },
+    rejected: {
+      main: "#F05D61",
     },
   },
   components: {

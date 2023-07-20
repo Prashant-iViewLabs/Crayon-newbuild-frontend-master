@@ -7,7 +7,7 @@ import locale from "../../../i18n/locale";
 import Accordion from "@mui/material/Accordion";
 import TextField from "@mui/material/TextField";
 import AllTalentCard from "../adminTalent/AllTalentCard";
-import { ADMIN_TALENT_JOBS, ALERT_TYPE } from "../../../utils/Constants";
+import { ADMIN_TALENT_JOBS, ALERT_TYPE, ERROR_MSG } from "../../../utils/Constants";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
@@ -20,8 +20,13 @@ import {
   getAllTalentJobs,
   getJobCount,
 } from "../../../redux/admin/jobsSlice";
-import { setAlert } from "../../../redux/configSlice";
+import { setAlert, setLoading } from "../../../redux/configSlice";
+import {
+  getPersonalities,
+  getTraits,
+} from "../../../redux/employer/postJobSlice";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { useSelector } from "react-redux";
 
 const StyledAccordion = styled(Accordion)(({ theme }) => ({
   marginTop: "4px",
@@ -130,6 +135,10 @@ export default function AllTalent() {
   const dispatch = useDispatch();
   const [lastKey, setLastKey] = useState("");
   const [totalJob, setTotalJob] = useState(0);
+  const [personalityAdded, setPersonalityAdded] = useState(false);
+
+  const { personalities, traits } = useSelector((state) => state.postJobs);
+
   const onHandleManageTalent = (activeJobId) => {
     navigate(`${pathname}/${activeJobId}`);
   };
@@ -150,14 +159,36 @@ export default function AllTalent() {
     }
   };
 
+  const getAllData = async () => {
+    try {
+      dispatch(setLoading(true));
+      await Promise.all([dispatch(getPersonalities()), dispatch(getTraits())]);
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispatch(setLoading(false));
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
+
   const pendingJobCount = async () => {
     const response = await dispatch(getJobCount(1));
     setTotalJob(response.payload.count);
   };
+
+  useEffect(() => {
+    getAllData();
+  }, []);
+
   useEffect(() => {
     getJobList(lastKey);
     pendingJobCount();
-  }, []);
+  }, [personalityAdded]);
 
   return (
     <Box sx={{ ml: 6 }}>
@@ -213,6 +244,9 @@ export default function AllTalent() {
               index={job.user_id}
               talentContent={job}
               onManageTalent={onHandleManageTalent}
+              setPersonalityAdded={setPersonalityAdded}
+              traits={traits}
+              personalities={personalities}
             />
           ))}
         </Box>

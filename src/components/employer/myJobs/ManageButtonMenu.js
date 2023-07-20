@@ -132,13 +132,44 @@ const ManageButtonMenu = ({ job }) => {
     job_id: job?.job_id,
     status: "closed",
   };
+  const reactivateJobData = {
+    job_id: job?.job_id,
+    status: "reactivate",
+  };
   const duplicateJobData = {
     job_id: job?.job_id,
+  };
+  const reactivateJob = async () => {
+    try {
+      const { payload } = await dispatch(statusChange(reactivateJobData));
+      if (payload?.status == "success") {
+        setManage(payload?.statusname);
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.SUCCESS,
+            msg: "Job Reactivated successfully!",
+          })
+        );
+        handleClose2();
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+    } catch (error) {
+      dispatch(setAlert({ show: true }));
+    }
   };
   const pauseJob = async () => {
     try {
       const { payload } = await dispatch(statusChange(pauseJobData));
       if (payload?.status == "success") {
+        setManage(payload?.statusname);
         dispatch(
           setAlert({
             show: true,
@@ -164,6 +195,7 @@ const ManageButtonMenu = ({ job }) => {
     try {
       const { payload } = await dispatch(statusChange(closeJobData));
       if (payload?.status == "success") {
+        setManage(payload?.statusname);
         dispatch(
           setAlert({
             show: true,
@@ -225,6 +257,8 @@ const ManageButtonMenu = ({ job }) => {
       closeJob();
     } else if (temp == "d") {
       duplicateJob();
+    } else if (temp == "e") {
+      reactivateJob();
     }
   };
 
@@ -324,22 +358,40 @@ const ManageButtonMenu = ({ job }) => {
             variant="outlined"
             color="lightBlueJobButton300"
           >
-            {i18n["manageJob.edit"]}
+            {i18n["manageJob.editJob"]}
           </Button>
-          <Button
-            sx={{
-              boxShadow: 0,
-              fontSize: "12px",
-              height: "38px",
-              borderRadius: "10px",
-              mt: 1,
-            }}
-            onClick={() => handleOpen2("b")}
-            variant="outlined"
-            color="lightBlueJobButton300"
-          >
-            {i18n["manageJob.pause"]}
-          </Button>
+          {manage == "paused" || manage == "closed" ? (
+            <Button
+              sx={{
+                boxShadow: 0,
+                fontSize: "12px",
+                height: "38px",
+                borderRadius: "10px",
+                mt: 1,
+              }}
+              onClick={() => handleOpen2("e")}
+              variant="outlined"
+              color="lightBlueJobButton300"
+            >
+              {i18n["manageJob.reactivateJob"]}
+            </Button>
+          ) : (
+            <Button
+              sx={{
+                boxShadow: 0,
+                fontSize: "12px",
+                height: "38px",
+                borderRadius: "10px",
+                mt: 1,
+              }}
+              onClick={() => handleOpen2("b")}
+              variant="outlined"
+              color="lightBlueJobButton300"
+            >
+              {i18n["manageJob.pauseJob"]}
+            </Button>
+          )}
+
           <Button
             sx={{
               boxShadow: 0,
@@ -352,7 +404,7 @@ const ManageButtonMenu = ({ job }) => {
             variant="outlined"
             color="lightBlueJobButton300"
           >
-            {i18n["manageJob.close"]}
+            {i18n["manageJob.closeJob"]}
           </Button>
           <Button
             sx={{
@@ -366,7 +418,7 @@ const ManageButtonMenu = ({ job }) => {
             color="lightBlueJobButton300"
             onClick={() => handleOpen2("d")}
           >
-            {i18n["manageJob.duplicate"]}
+            {i18n["manageJob.duplicateJob"]}
           </Button>
           <Modal
             open={open2}
@@ -379,7 +431,8 @@ const ManageButtonMenu = ({ job }) => {
                 Are you sure that you want to {temp == "a" && "Edit"}
                 {temp == "b" && "Pause"}
                 {temp == "c" && "Close"}
-                {temp == "d" && "Duplicate"} this job?
+                {temp == "d" && "Duplicate"}
+                {temp == "e" && "Reactivate"} this job?
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button

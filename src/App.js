@@ -30,7 +30,8 @@ import PublicRoute from './components/route/PublicRoute';
 import PendingJobs from './components/admin/adminJobs/pendingJobs/PendingJobs';
 import PausedJobs from './components/admin/adminJobs/pausedJobs/PausedJobs';
 import ClosedJobs from './components/admin/adminJobs/closedJobs/ClosedJobs';
-import JobCard from './components/JobCardFlip/JobCard/Jobcard.jsx';
+import CandidateCVPage from './components/candidate/cvPage/CandidateCVPage';
+// import JobsDetailPage from './components/guest/jobs/JobsDetailPage';
 
 export default function App() {
   return (
@@ -74,7 +75,8 @@ export default function App() {
         </Route>
 
         <Route path='*' element={<ComingSoon />} />
-        <Route path='jobcard-flip' element={<JobCard />} />
+        <Route path='candidate-cv/:id' element={<PrivateRoute><CandidateCVPage /></PrivateRoute>} />
+        {/* <Route path='job-detail/:id' element={<PrivateRoute><JobsDetailPage /></PrivateRoute>} /> */}
       </Route>
       <Route path='*' element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
     </Routes>
