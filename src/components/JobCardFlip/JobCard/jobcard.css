@@ -1,0 +1,10 @@
+.flipcard {
+  width: 25%;
+  margin: auto;
+  margin-top: 50px;
+}
+.display-flex {
+  display: flex;
+  margin: auto;
+  
+}
