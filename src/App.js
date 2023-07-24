@@ -31,7 +31,7 @@ import PendingJobs from './components/admin/adminJobs/pendingJobs/PendingJobs';
 import PausedJobs from './components/admin/adminJobs/pausedJobs/PausedJobs';
 import ClosedJobs from './components/admin/adminJobs/closedJobs/ClosedJobs';
 import CandidateCVPage from './components/candidate/cvPage/CandidateCVPage';
-// import JobsDetailPage from './components/guest/jobs/JobsDetailPage';
+import JobsDetailPage from './components/guest/jobs/JobsDetailPage';
 
 export default function App() {
   return (
@@ -51,7 +51,7 @@ export default function App() {
 
         <Route exact path='candidate' element={<PrivateRoute><Candidate /></PrivateRoute>} >
           <Route path='my-jobs' element={<PrivateRoute><MyJobsCandidate /></PrivateRoute>} />
-          {/*<Route path='my-cv' element={<PrivateRoute><MyCV /></PrivateRoute>} />*/}
+          {/* <Route path='my-cv' element={<PrivateRoute><MyCV /></PrivateRoute>} /> */}
           <Route path='my-cv' element={<PrivateRoute><MyCVNew /></PrivateRoute>} />
           <Route path='my-profile' element={<PrivateRoute><MyProfileCan /></PrivateRoute>} />
         </Route>
@@ -75,8 +75,8 @@ export default function App() {
         </Route>
 
         <Route path='*' element={<ComingSoon />} />
-        <Route path='candidate-cv/:id' element={<PrivateRoute><CandidateCVPage /></PrivateRoute>} />
-        {/* <Route path='job-detail/:id' element={<PrivateRoute><JobsDetailPage /></PrivateRoute>} /> */}
+        <Route path='candidate-cv/:id' element={<CandidateCVPage />} />
+        <Route path='job-detail/:id' element={<JobsDetailPage />} />
       </Route>
       <Route path='*' element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
     </Routes>

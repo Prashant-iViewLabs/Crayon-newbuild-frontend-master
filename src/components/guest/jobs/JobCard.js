@@ -19,6 +19,7 @@ import {
   AUTHORIZED_TAB_ITEMS_CANDIDATE,
   AUTHORIZED_TAB_ITEMS_EMPLOYER,
   CARD_RIGHT_BUTTON_GROUP,
+  ERROR_MSG,
   PUBLIC_TAB_ITEMS,
 } from "../../../utils/Constants";
 import Tooltip from "@mui/material/Tooltip";
@@ -42,6 +43,7 @@ import { setAlert } from "../../../redux/configSlice";
 import { Toolbar } from "@mui/material";
 import { favouriteJob } from "../../../redux/guest/talentSlice";
 import jwt_decode from "jwt-decode";
+import { getJobDetail } from "../../../redux/guest/jobsSlice";
 
 const label1 = "applied";
 const label2 = "shortlisted";
@@ -89,6 +91,25 @@ export default function JobCard({ index, job }) {
   const handleHoverLeave = () => {
     setColorKey("color");
   };
+
+  const handleCardClick = async () => {
+    try {
+      const { payload } = await dispatch(getJobDetail({ job_id: job?.job_id }));
+      if (payload?.status == "success") {
+        const jobData = payload?.data;
+        navigate(`/job-detail/${job?.job_id}`, { state: jobData });
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
+
   const handleStar = async () => {
     setIsStarSelected(!isStar);
     decodedToken?.data?.role_id == 3 &&
@@ -260,7 +281,6 @@ export default function JobCard({ index, job }) {
               onClick={handleClick}
             />
           </Box>
-          {console.log(decodedToken?.data?.role_id)}
           {isStar ? (
             <Box
               component="img"
@@ -346,6 +366,7 @@ export default function JobCard({ index, job }) {
               WebkitLineClamp: 1,
             }}
             gutterBottom
+            onClick={handleCardClick}
           >
             {job?.title.slice(0, 30)}
           </Typography>
@@ -566,7 +587,7 @@ export default function JobCard({ index, job }) {
           </IconButton>
         ) : null}
       </Grid>
-      
+
       <Grid
         container
         spacing={2}

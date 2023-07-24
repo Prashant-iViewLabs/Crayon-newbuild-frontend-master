@@ -139,6 +139,7 @@ export default function AutoComplete({
   limitTags = 5,
   allowCustomInput = true,
   index,
+  showAddOption = false,
 }) {
   const theme = useTheme();
   return (
@@ -154,6 +155,7 @@ export default function AutoComplete({
       }}
     >
       <StyledAutocomplete
+        showAddOption={showAddOption}
         multiple={multiple}
         limitTags={limitTags}
         sx={{
@@ -163,6 +165,7 @@ export default function AutoComplete({
           },
         }}
         disabled={disabled}
+        allowCustomInput={allowCustomInput}
         size="small"
         id={id}
         index={index}
@@ -179,7 +182,8 @@ export default function AutoComplete({
             inputValue &&
             inputValue.length &&
             inputValue.length > 1 &&
-            allowCustomInput
+            allowCustomInput &&
+            showAddOption
           ) {
             // Suggest the creation of a new value
             const isExisting = newOptionsArr.some(

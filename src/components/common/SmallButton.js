@@ -1,7 +1,8 @@
 import { useTheme } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import locale from "../../i18n/locale";
-import { Tooltip } from "@mui/material";
+import { Tooltip, Typography } from "@mui/material";
+
 
 export default function SmallButton({
   color,
@@ -34,7 +35,6 @@ export default function SmallButton({
           boxShadow: 0,
           borderRadius: "5px",
           color: textColor,
-          minWidth: "fit-content",
           padding: "0 8px",
           ".MuiButton-startIcon": {
             marginRight: startIconMargin,

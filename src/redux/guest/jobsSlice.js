@@ -20,6 +20,7 @@ export const getAllJobs = createAsyncThunk(
     return data;
   }
 );
+
 export const getFilteredJobs = createAsyncThunk(
   "getFilteredJobs",
   async (
@@ -68,6 +69,16 @@ export const getFilteredJobs = createAsyncThunk(
     );
     dispatch(setLoading(false));
     console.log("PAYLOAD DATA", data);
+    return data;
+  }
+);
+
+export const getJobDetail = createAsyncThunk(
+  "getJobDetail",
+  async ({ job_id }, { dispatch }) => {
+    dispatch(setLoading(true));
+    const { data } = await getApi("/jobs/getjob?job_id=" + job_id);
+    dispatch(setLoading(false));
     return data;
   }
 );

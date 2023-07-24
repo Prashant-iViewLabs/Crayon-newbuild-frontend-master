@@ -706,6 +706,8 @@ export default function TheBasics({ changeStep }) {
               {i18n["postAJob.jobTitleLabel"]}
             </InputLabel>
             <AutoComplete
+              showAddOption={true}
+              allowCustomInput={true}
               id="job_title_id"
               value={
                 titles?.find((title) => title.id == basicData.job_title_id) ||

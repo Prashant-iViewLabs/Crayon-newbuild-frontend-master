@@ -21,7 +21,7 @@ import salary from "../../../assets/salary.svg";
 import experience from "../../../assets/experience.svg";
 import qualification from "../../../assets/qualification.svg";
 import personality from "../../../assets/personality.svg";
-// import SelectMultiple from "../../common/SelectMultiple";
+import SelectMultiple from "../../common/SelectMultiple";
 import sortLogo from "../../../assets/sort_logo.svg";
 import Menu from "@mui/material/Menu";
 import Fade from "@mui/material/Fade";
@@ -33,6 +33,7 @@ const StyledBox = (props) => {
   return (
     <Box
       sx={{
+        width: 1,
         height: 37,
         backgroundColor: theme.palette[color].main,
         borderRadius: "0 0 20px 20px",

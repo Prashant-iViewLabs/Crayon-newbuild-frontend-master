@@ -61,6 +61,8 @@ const en = {
   },
   jobCard: {
     recruit: "recruit",
+    lite: "lite jobs",
+    matchnow: "match now",
     review: "review",
     tech: "tech",
     fullTime: "full-time",

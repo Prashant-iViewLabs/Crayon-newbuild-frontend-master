@@ -7,7 +7,7 @@ const theme = createTheme({
       main: "#FFFFFF",
     },
     cvColor: {
-      main: "#e5f4ff",
+      main: "#E0E0E080",
       contrastText: "#FFFFFF",
       light: "#f1e5ff",
     },
