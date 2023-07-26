@@ -477,6 +477,8 @@ export default function TheBasics({ changeStep }) {
       ...basicData,
       [name || id]: workSetup.find((work) => work.id == value).name,
     };
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -526,6 +528,9 @@ export default function TheBasics({ changeStep }) {
           ? salary?.find((sal) => sal?.max == value).salary_id
           : value,
     };
+
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -549,6 +554,8 @@ export default function TheBasics({ changeStep }) {
         [id]: newValue?.id,
       };
     }
+    const filteredErrors = errors?.filter((item) => item.key != id);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -563,6 +570,9 @@ export default function TheBasics({ changeStep }) {
       ...basicData,
       [name]: roleTypes.find((role) => role.id == value).name,
     };
+
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -572,6 +582,8 @@ export default function TheBasics({ changeStep }) {
       ...basicData,
       [id]: newValue?.map((val) => val?.inputValue || val?.id || val),
     };
+    const filteredErrors = errors?.filter((item) => item.key != id);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -623,12 +635,13 @@ export default function TheBasics({ changeStep }) {
   }, [basicData.currency_id]);
 
   return (
-    <Box >
+    <Box sx={{ ml: 3 }}>
       <Typography
         sx={{
           fontSize: "20px",
           fontWeight: 700,
           ml: 1,
+          mb: 2,
         }}
       >
         {CV_STEPS[0]}
@@ -646,15 +659,11 @@ export default function TheBasics({ changeStep }) {
           onClick={handleFileClick}
           variant="outlined"
           color="redButton100"
-          sx={{
-            mt: 1
-          }}
         >
           {i18n["myCV.uploadCV"]}
         </StyledButton>
         <StyledButton
-          sx={{ opacity: 0.5, 
-          mt: 1 }}
+          sx={{ opacity: 0.5 }}
           variant="contained"
           color="redButton100"
         >
@@ -701,18 +710,14 @@ export default function TheBasics({ changeStep }) {
               data={titles}
               showAddOption={true}
             ></AutoComplete>
-            {!titles?.find(
-              (title) => title.id == basicData.current_job_title_id
-            ) &&
-              !basicData.current_job_title_id &&
-              errors?.find((error) => error.key == "current_job_title_id") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "current_job_title_id")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "current_job_title_id") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "current_job_title_id")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -740,18 +745,14 @@ export default function TheBasics({ changeStep }) {
               data={titles}
               showAddOption={true}
             ></AutoComplete>
-            {!titles?.find(
-              (title) => title.id == basicData.dream_job_title_id
-            ) &&
-              !basicData.dream_job_title_id &&
-              errors?.find((error) => error.key == "dream_job_title_id") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "dream_job_title_id")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "dream_job_title_id") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "dream_job_title_id")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
         </Box>
         <Box sx={{ mb: 3 }}>
@@ -776,14 +777,11 @@ export default function TheBasics({ changeStep }) {
             placeholder={i18n["myCV.preferredIndustries"]}
             data={industries}
           ></AutoComplete>
-          {getIndValue() == "" &&
-            errors?.find((error) => error.key == "industries") && (
-              <Typography color={"red !important"}>
-                {`*${
-                  errors?.find((error) => error.key == "industries").message
-                }`}
-              </Typography>
-            )}
+          {errors?.find((error) => error.key == "industries") && (
+            <Typography color={"red !important"}>
+              {`*${errors?.find((error) => error.key == "industries").message}`}
+            </Typography>
+          )}
         </Box>
         <Box sx={{ mb: 3 }}>
           <InputLabel
@@ -807,12 +805,11 @@ export default function TheBasics({ changeStep }) {
             placeholder={i18n["myCV.skills"]}
             data={skills}
           ></AutoComplete>
-          {getSkillValue() == "" &&
-            errors?.find((error) => error.key == "tags") && (
-              <Typography color={"red !important"}>
-                {`*${errors?.find((error) => error.key == "tags").message}`}
-              </Typography>
-            )}
+          {errors?.find((error) => error.key == "tags") && (
+            <Typography color={"red !important"}>
+              {`*${errors?.find((error) => error.key == "tags").message}`}
+            </Typography>
+          )}
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
@@ -831,7 +828,7 @@ export default function TheBasics({ changeStep }) {
             </InputLabel>
             <Slider
               disableSwap
-              sx={{ width: "90%", ml: 1 }}
+              sx={{ width: "88%", ml: 2 }}
               name="experience"
               getAriaLabel={() => "Temperature range"}
               value={expRange}
@@ -864,9 +861,19 @@ export default function TheBasics({ changeStep }) {
             >
               {i18n["myCV.noticePeriodLabel"]}
             </InputLabel>
+            {/* <SelectMenu
+            name="notice_period_id"
+            value={basicData.notice_period_id}
+            onHandleChange={handleChange}
+            options={noticePeriod}
+            sx={{ width: "94%" }}
+            placeholder={i18n["myCV.noticePeriod"]}
+          /> */}
             <Slider
               aria-label="Custom marks"
               name="notice_period_id"
+              // defaultValue={0}
+              // value={basicData.notice_period_id*10}
               value={
                 noticePeriod.find(
                   (val) => val.id === basicData.notice_period_id
@@ -876,7 +883,11 @@ export default function TheBasics({ changeStep }) {
               getAriaValueText={noticeValue}
               onChange={noticeHandleChange}
               step={20}
-              sx={{ width: "88%", ml: 2 }}
+              sx={{ width: "90%", ml: 2 }}
+              // min={0}
+              // max={10}
+              // valueLabelDisplay="auto"
+              // valueLabelFormat={noticeValue}
               marks={noticePeriodMarks}
             />
             {errors?.find((error) => error.key == "notice_period_id") && (
@@ -911,15 +922,14 @@ export default function TheBasics({ changeStep }) {
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.highestQualificationLevel"]}
             />
-            {!basicData.qualification_level &&
-              errors?.find((error) => error.key == "qualification_level") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "qualification_level")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "qualification_level") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "qualification_level")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -942,15 +952,14 @@ export default function TheBasics({ changeStep }) {
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.preferredWorkType"]}
             />
-            {!basicData.employment_type &&
-              errors?.find((error) => error.key == "employment_type") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "employment_type")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "employment_type") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "employment_type")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
@@ -975,14 +984,13 @@ export default function TheBasics({ changeStep }) {
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.preferredCurrency"]}
             />
-            {!basicData?.currency_id &&
-              errors?.find((error) => error.key == "currency_id") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "currency_id").message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "currency_id") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "currency_id").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -1002,7 +1010,7 @@ export default function TheBasics({ changeStep }) {
 
             <Slider
               disableSwap
-              sx={{ width: "89%", ml: 1 }}
+              sx={{ width: "92%", ml: 1 }}
               disabled={salaryObj.step == 0}
               name="salary"
               getAriaLabel={() => "Temperature range"}
@@ -1057,17 +1065,16 @@ export default function TheBasics({ changeStep }) {
               value={basicData.work_setup}
               onHandleChange={handleWorkSetup}
               options={workSetup}
-              sx={{ width: "94%" }}
+              sx={{ width: "95%" }}
               placeholder={i18n["postAJob.workSetupPlaceholder"]}
             />
-            {!basicData.work_setup &&
-              errors?.find((error) => error.key == "work_setup") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "work_setup").message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "work_setup") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "work_setup").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -1088,18 +1095,17 @@ export default function TheBasics({ changeStep }) {
                   id="portfolio_link"
                   value={basicData.portfolio_link}
                   onChange={handleChange}
-                  sx={{ width: "94%" }}
+                  sx={{ width: "100%" }}
                   placeholder={i18n["myCV.portfolioLink"]}
                 />
-                {!basicData.portfolio_link &&
-                  errors?.find((error) => error.key == "portfolio_link") && (
-                    <Typography color={"red !important"}>
-                      {`*${
-                        errors?.find((error) => error.key == "portfolio_link")
-                          .message
-                      }`}
-                    </Typography>
-                  )}
+                {errors?.find((error) => error.key == "portfolio_link") && (
+                  <Typography color={"red !important"}>
+                    {`*${
+                      errors?.find((error) => error.key == "portfolio_link")
+                        .message
+                    }`}
+                  </Typography>
+                )}
                 <input
                   accept={fileAccept}
                   ref={hiddenFileInput2}
@@ -1114,7 +1120,7 @@ export default function TheBasics({ changeStep }) {
                   sx={{
                     position: "absolute",
                     top: "10%",
-                    right: 12,
+                    right: -25,
                     transform: "translateY(-50%)",
                     "@media (max-width: 600px)": {
                       fontSize: "12px",

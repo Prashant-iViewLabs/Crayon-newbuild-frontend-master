@@ -1,23 +1,35 @@
 import { useEffect, useState } from "react";
 import { styled, alpha } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  InputLabel,
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
 import locale from "../../../i18n/locale";
-import { CV_STEPS } from "../../../utils/Constants";
-import InputBox from "../../common/InputBox";
-import IconButton from "@mui/material/IconButton";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
+import InputBox from "../../common/InputBox";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import TextField from "@mui/material/TextField";
+import { ALERT_TYPE, CV_STEPS, ERROR_MSG } from "../../../utils/Constants";
 import dayjs from "dayjs";
-import Switch from "@mui/material/Switch";
-import { getLocalStorage } from "../../../utils/Common";
-import { InputLabel } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { getCVWorkLife } from "../../../redux/candidate/myCVNew";
+import { setAlert, setLoading } from "../../../redux/configSlice";
+import { addWorkData } from "../../../redux/candidate/myCvSlice";
+import { useSelector } from "react-redux";
+import { getTitles } from "../../../redux/employer/postJobSlice";
+import { getCompanies } from "../../../redux/employer/empProfileSlice";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import StyledButton from "../../common/StyledButton";
+import AutoComplete from "../../common/AutoComplete";
+
+const i18n = locale.en;
 
 const BlueSwitch = styled(Switch)(({ theme }) => ({
   "& .MuiSwitch-switchBase.Mui-checked": {
@@ -41,69 +53,167 @@ const WORK = {
   company_name: "",
   title: "",
   clients_worked_on_awards: "",
-  description: "",
   start_date: "",
   end_date: "",
   currently_employed_here: 0,
-  no_work_exp: false,
 };
-export default function WorkLife({ onSubmit, work, errors }) {
-  // console.log(work);
-  const i18n = locale.en;
-  // const [workData, setWorkData] = useState(JSON.parse(getLocalStorage('workData')) || [WORK])
+
+const WORD_LIMIT = 50;
+
+export default function WorkLife({ changeStep }) {
+  const dispatch = useDispatch();
+  const [errors, setErrors] = useState([]);
   const [workData, setWorkData] = useState([WORK]);
+  const [noWorkExp, setNoWorkExp] = useState(false);
+  const [wordLimitExceed, setWordLimitExceed] = useState(false);
 
-  useEffect(() => {
-    if (work.length > 0) {
-      setWorkData(work);
+  const { companies, titles } = useSelector((state) => state.myProfile);
+  console.log(companies);
+  console.log(titles);
+
+  const getAllData = async () => {
+    try {
+      dispatch(setLoading(true));
+      await Promise.all([dispatch(getCompanies()), dispatch(getTitles())]);
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispatch(setLoading(false));
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
     }
-  }, [work]);
+  };
 
-  const StyledButton = styled(Button)(({ theme }) => ({
-    marginRight: "24px",
-    marginTop: "15px",
-    fontSize: "14px",
-    width: "auto",
-    border: `2px solid ${theme.palette.redButton100.main}`,
-    "& .MuiSvgIcon-root": {
-      fontSize: "16px",
-    },
-  }));
+  const handleSaveButton = async () => {
+    try {
+      const { payload } = await dispatch(
+        addWorkData(noWorkExp ? [] : workData)
+      );
+
+      if (payload?.status == "success") {
+        // setLocalStorage('basicData', JSON.stringify(basicData))
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.SUCCESS,
+            msg: "Work data added successfully!",
+          })
+        );
+        changeStep(3);
+        setErrors([]);
+      } else if (payload?.status == "error") {
+        setErrors(payload?.message);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
+
+  const getCVWorkLifeData = async () => {
+    const { payload } = await dispatch(getCVWorkLife());
+
+    if (payload?.status == "success") {
+      // console.log("PAYLOAD", payload?.data);
+      payload?.data.length && setWorkData(payload?.data);
+    } else if (payload?.status == "error") {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: "Fill the work life details",
+        })
+      );
+    } else {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: payload?.data,
+        })
+      );
+    }
+    dispatch(setLoading(false));
+  };
+
   const addWork = () => {
-    onSubmit("work", [...workData, WORK]);
     setWorkData((prevState) => [...prevState, WORK]);
   };
   const removeWork = (event, index) => {
     if (workData.length > 1) {
       const newWorkData = workData.filter((data, i) => i + 1 != index);
       setWorkData(newWorkData);
-      onSubmit("work", newWorkData);
     }
   };
-  const handleChange = (event, index, type) => {
+  const handleChange = (event, index, type, id) => {
     const newWorkData = JSON.parse(JSON.stringify(workData));
-
     if (event && event.target) {
-      newWorkData[index][event.target.id] = event.target.value;
-      setWorkData(newWorkData);
+      if (event.target.value.split(" ").length < WORD_LIMIT) {
+        setWordLimitExceed(false);
+        newWorkData[index][event.target.id] = event.target.value;
+        setWorkData(newWorkData);
+      } else {
+        setWordLimitExceed(true);
+      }
     } else {
       newWorkData[index][type] = dayjs(event).format("YYYY-MM-DD");
       setWorkData(newWorkData);
     }
-    onSubmit("work", newWorkData);
   };
 
   const handleNoExp = (event) => {
     const isChecked = event.target.checked;
-
-    const newWorkExp = WORK;
-    newWorkExp.no_work_exp = isChecked;
-    setWorkData([newWorkExp]);
-    onSubmit("work", [newWorkExp]);
+    setNoWorkExp(isChecked);
   };
 
+  const handleCompVal = (event, newValue, id, index) => {
+    const updatedWorkData = [...workData];
+
+    updatedWorkData[index] = {
+      ...updatedWorkData[index],
+      [id]: newValue?.name || "",
+    };
+
+    console.log(updatedWorkData);
+    setWorkData(updatedWorkData);
+  };
+
+  const handleTitleVal = (event, newValue, id, index) => {
+    const updatedWorkData = [...workData];
+
+    updatedWorkData[index] = {
+      ...updatedWorkData[index],
+      [id]: newValue?.name || "",
+    };
+
+    console.log(updatedWorkData);
+    setWorkData(updatedWorkData);
+  };
+
+  useEffect(() => {
+    getCVWorkLifeData();
+    getAllData();
+  }, []);
+
   return (
-    <Box sx={{ pl: 3 }}>
+    <Box>
       <Box sx={{ display: "flex", alignItems: "baseline" }}>
         <Box>
           <Typography
@@ -123,10 +233,7 @@ export default function WorkLife({ onSubmit, work, errors }) {
             ml: 1,
           }}
         >
-          <BlueSwitch
-            onChange={handleNoExp}
-            checked={workData[0].no_work_exp}
-          />
+          <BlueSwitch onChange={handleNoExp} checked={noWorkExp} />
           <Typography
             sx={{
               fontSize: "12px",
@@ -137,8 +244,8 @@ export default function WorkLife({ onSubmit, work, errors }) {
           </Typography>
         </Box>
       </Box>
-
-      {workData.length > 0 &&
+      {console.log(workData)}
+      {workData.length >= 0 &&
         workData.map((work, index) => (
           <Box key={index}>
             <Box
@@ -215,22 +322,44 @@ export default function WorkLife({ onSubmit, work, errors }) {
                 >
                   {i18n["myCV.companyNameLabel"]}
                 </InputLabel>
-                <InputBox
-                  disabled={work.no_work_exp}
+                {/*<InputBox
+                  disabled={noWorkExp}
                   id="company_name"
                   value={work.company_name}
                   onChange={(event) => handleChange(event, index)}
                   sx={{ width: "94%" }}
                   placeholder={i18n["myCV.companyName"]}
-                />
-                {errors?.find((error) => error.key == "company_name") && (
-                  <Typography color={"red !important"}>
-                    {`*${
-                      errors?.find((error) => error.key == "company_name")
-                        .message
-                    }`}
-                  </Typography>
-                )}
+                />*/}
+
+                <AutoComplete
+                  showAddOption={true}
+                  allowCustomInput={true}
+                  disabled={noWorkExp}
+                  id="company_name"
+                  sx={{ width: "94%" }}
+                  // value={getCompValue()}
+                  value={
+                    companies?.find(
+                      (title) => title.name == work?.company_name
+                    ) || work?.company_name
+                  }
+                  index={index}
+                  onChange={handleCompVal}
+                  placeholder={i18n["empMyProfile.companyNamePlace"]}
+                  data={companies}
+                ></AutoComplete>
+                {!companies?.find(
+                  (title) => title.name == work?.company_name
+                ) &&
+                  !work?.company_name &&
+                  errors?.find((error) => error.key == "company_name") && (
+                    <Typography color={"red !important"}>
+                      {`*${
+                        errors?.find((error) => error.key == "company_name")
+                          .message
+                      }`}
+                    </Typography>
+                  )}
               </Box>
               <Box sx={{ width: "100%" }}>
                 <InputLabel
@@ -245,76 +374,104 @@ export default function WorkLife({ onSubmit, work, errors }) {
                 >
                   {i18n["myCV.jobTitleLable"]}
                 </InputLabel>
-                <InputBox
-                  disabled={work.no_work_exp}
+                {/*<InputBox
+                  disabled={noWorkExp}
                   id="title"
                   value={work.title}
                   onChange={(event) => handleChange(event, index)}
                   sx={{ width: "94%" }}
                   placeholder={i18n["myCV.jobTitle"]}
-                />
-                {errors?.find((error) => error.key == "title") && (
-                  <Typography color={"red !important"}>
-                    {`*${
-                      errors?.find((error) => error.key == "title").message
-                    }`}
-                  </Typography>
-                )}
+                />*/}
+
+                <AutoComplete
+                  showAddOption={true}
+                  allowCustomInput={true}
+                  disabled={noWorkExp}
+                  id="title"
+                  sx={{ width: "94%" }}
+                  // value={getCompValue()}
+                  value={
+                    titles?.find((item) => item.name == work?.title) ||
+                    work?.title
+                  }
+                  index={index}
+                  onChange={handleTitleVal}
+                  placeholder={i18n["myCV.workJobTitle"]}
+                  data={titles}
+                ></AutoComplete>
+                {!titles?.find((item) => item.name == work?.title) &&
+                  !work?.title &&
+                  errors?.find((error) => error.key == "title") && (
+                    <Typography color={"red !important"}>
+                      {`*${
+                        errors?.find((error) => error.key == "title").message
+                      }`}
+                    </Typography>
+                  )}
               </Box>
             </Box>
-            <InputLabel
-              htmlFor="clients_worked_on_awards"
+            <Box sx={{ mb: 3 }}>
+              <InputLabel
+                htmlFor="clients_worked_on_awards"
+                sx={{
+                  color: "black",
+                  paddingLeft: "10px",
+                  paddingBottom: "2px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                }}
+              >
+                {i18n["myCV.descriptionJobLabel"]}
+              </InputLabel>
+              <InputBox
+                disabled={noWorkExp}
+                id="clients_worked_on_awards"
+                value={work.clients_worked_on_awards}
+                onChange={(event) => handleChange(event, index)}
+                sx={{ width: "97%" }}
+                placeholder={i18n["myCV.clientsAwards"]}
+              />
+              {errors?.find(
+                (error) => error.key == "clients_worked_on_awards"
+              ) && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find(
+                      (error) => error.key == "clients_worked_on_awards"
+                    ).message
+                  }`}
+                </Typography>
+              )}
+              {wordLimitExceed && (
+                <Typography color={"red !important"}>
+                  Word limit {WORD_LIMIT}
+                </Typography>
+              )}
+            </Box>
+            <Box
               sx={{
-                color: "black",
-                paddingLeft: "10px",
-                paddingBottom: "2px",
-                fontSize: "14px",
-                fontWeight: 500,
+                display: "flex",
+                justifyContent: "space-between",
+                mb: 3,
+                width: "100%",
               }}
             >
-              {i18n["myCV.descriptionJobLabel"]}
-            </InputLabel>
-            <InputBox
-              disabled={work.no_work_exp}
-              id="clients_worked_on_awards"
-              value={work.clients_worked_on_awards}
-              onChange={(event) => handleChange(event, index)}
-              sx={{ mb: 3, width: "97%" }}
-              placeholder={i18n["myCV.clientsAwards"]}
-            />
-            {errors?.find(
-              (error) => error.key == "clients_worked_on_awards"
-            ) && (
-              <Typography color={"red !important"}>
-                {`*${
-                  errors?.find(
-                    (error) => error.key == "clients_worked_on_awards"
-                  ).message
-                }`}
-              </Typography>
-            )}
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}
-            >
-              {/* <InputBox sx={{ width: '50%', mr: 5 }} placeholder={i18n['myCV.startDate1']} />
-                                <InputBox sx={{ width: '50%' }} placeholder={i18n['myCV.endDate1']} /> */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <Box sx={{ width: "100%" }}>
-                  <InputLabel
-                    htmlFor="title"
-                    sx={{
-                      color: "black",
-                      paddingLeft: "10px",
-                      paddingBottom: "2px",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {i18n["myCV.startDate"]}
-                  </InputLabel>
+              <Box sx={{ width: "50%" }}>
+                <InputLabel
+                  htmlFor="startdate"
+                  sx={{
+                    color: "black",
+                    paddingLeft: "10px",
+                    paddingBottom: "2px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                >
+                  {i18n["myCV.startDate"]}
+                </InputLabel>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    disabled={work.no_work_exp}
-                    // label="start date"
+                    disabled={noWorkExp}
                     value={work.start_date}
                     onChange={(newValue) =>
                       handleChange(newValue, index, "start_date")
@@ -328,11 +485,17 @@ export default function WorkLife({ onSubmit, work, errors }) {
                             mr: 5,
                             borderRadius: "40px",
                           },
+                          "& fieldset": {
+                            borderColor: "rgba(0, 0, 0, 0.26) !important",
+                          },
+                          minWidth: "100% !important",
                         }}
                       />
                     )}
                   />
-                  {errors?.find((error) => error.key == "start_date") && (
+                </LocalizationProvider>
+                {work.start_date == "" &&
+                  errors?.find((error) => error.key == "start_date") && (
                     <Typography color={"red !important"}>
                       {`*${
                         errors?.find((error) => error.key == "start_date")
@@ -340,24 +503,26 @@ export default function WorkLife({ onSubmit, work, errors }) {
                       }`}
                     </Typography>
                   )}
-                </Box>
-                <Box sx={{ width: "50%" }}>
-                  <InputLabel
-                    htmlFor="title"
-                    sx={{
-                      color: "black",
-                      paddingLeft: "10px",
-                      paddingBottom: "2px",
-                      fontSize: "14px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {i18n["myCV.endDate"]}
-                  </InputLabel>
+              </Box>
+              <Box sx={{ width: "50%" }}>
+                <InputLabel
+                  htmlFor="enddate"
+                  sx={{
+                    color: "black",
+                    paddingLeft: "10px",
+                    paddingBottom: "2px",
+                    fontSize: "14px",
+                    fontWeight: 500,
+                  }}
+                >
+                  {i18n["myCV.endDate"]}
+                </InputLabel>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    disabled={work.no_work_exp}
+                    disabled={noWorkExp}
                     // label="end date"
                     value={work.end_date}
+                    minDate={work.start_date}
                     onChange={(newValue) =>
                       handleChange(newValue, index, "end_date")
                     }
@@ -369,19 +534,25 @@ export default function WorkLife({ onSubmit, work, errors }) {
                             height: "40px",
                             borderRadius: "40px",
                           },
+                          "& fieldset": {
+                            borderColor: "rgba(0, 0, 0, 0.26) !important",
+                          },
+                          minWidth: "94% !important",
                         }}
                       />
                     )}
                   />
-                  {errors?.find((error) => error.key == "end_date") && (
+                </LocalizationProvider>
+
+                {work.end_date == "" &&
+                  errors?.find((error) => error.key == "end_date") && (
                     <Typography color={"red !important"}>
                       {`*${
                         errors?.find((error) => error.key == "end_date").message
                       }`}
                     </Typography>
                   )}
-                </Box>
-              </LocalizationProvider>
+              </Box>
             </Box>
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               {/* <IconButton
@@ -407,9 +578,41 @@ export default function WorkLife({ onSubmit, work, errors }) {
             </Box>
           </Box>
         ))}
-      <StyledButton variant="outlined" color="redButton100" onClick={addWork}>
+      <StyledButton
+        disabled={noWorkExp}
+        variant="outlined"
+        color="redButton100"
+        onClick={addWork}
+      >
         {i18n["myCV.workBottonText"]}
       </StyledButton>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          pt: 5,
+        }}
+      >
+        <StyledButton
+          startIcon={<ArrowBackIosIcon />}
+          variant="outlined"
+          color="redButton100"
+          onClick={() => {
+            changeStep(1);
+          }}
+        >
+          {CV_STEPS[0]}
+        </StyledButton>
+        <StyledButton
+          // disabled={noWorkExp}
+          onClick={handleSaveButton}
+          variant="outlined"
+          color="redButton100"
+        >
+          {i18n["myCV.quickSave"]}
+        </StyledButton>
+      </Box>
     </Box>
   );
 }

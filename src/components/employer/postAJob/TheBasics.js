@@ -1,27 +1,28 @@
-import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
+import { useDispatch } from "react-redux";
+import { setAlert, setLoading } from "../../../redux/configSlice";
+import { useEffect, useState } from "react";
+import {
+  addBasicData,
+  getBasicData,
+} from "../../../redux/employer/postJobSlice";
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Radio,
+  Typography,
+} from "@mui/material";
 import { CV_STEPS } from "../../../utils/Constants";
-import InputBox from "../../common/InputBox";
 import Slider from "@mui/material/Slider";
 import SelectMenu from "../../common/SelectMenu";
 import ToggleSwitch from "../../common/ToggleSwitch";
 import AutoComplete from "../../common/AutoComplete";
 import { InputLabel } from "@mui/material";
-import { setAlert, setLoading } from "../../../redux/configSlice";
 import { ALERT_TYPE, ERROR_MSG, ROLE_TYPE } from "../../../utils/Constants";
-import { addId } from "../../../utils/Common";
-import Switch from "@mui/material/Switch";
-import { alpha } from "@mui/material/styles";
-import { isEmpty } from "lodash";
-import Radio from "@mui/material/Radio";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import {
@@ -38,26 +39,22 @@ import {
   getTown,
   getTools,
 } from "../../../redux/employer/postJobSlice";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { ResetTvRounded } from "@mui/icons-material";
 
-const BlueSwitch = styled(Switch)(({ theme }) => ({
-  "& .MuiSwitch-switchBase.Mui-checked": {
-    color: theme.palette.blueButton400.main,
-    "&:hover": {
-      backgroundColor: alpha(
-        theme.palette.blueButton400.main,
-        theme.palette.action.hoverOpacity
-      ),
-    },
-  },
-  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-    backgroundColor: theme.palette.blueButton400.main,
-  },
-  "& .MuiSwitch-track": {
-    // marginTop: '-9px'
+const StyledButton = styled(Button)(({ theme }) => ({
+  marginRight: "24px",
+  fontSize: "14px",
+  width: "150px",
+  border: `2px solid ${theme.palette.redButton100.main}`,
+  "& .MuiSvgIcon-root": {
+    fontSize: "16px",
   },
 }));
+
 const BASIC = {
-  job_id: 0,
+  job_id: null,
   company_id: 807, // remobe company id once employer flow is setup
   job_title_id: "",
   job_role_type: "",
@@ -81,17 +78,6 @@ const SALARY_OBJ = {
   max: 0,
   step: 0,
 };
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  marginRight: "24px",
-  fontSize: "14px",
-  width: "150px",
-  border: `2px solid ${theme.palette.redButton100.main}`,
-  "& .MuiSvgIcon-root": {
-    fontSize: "16px",
-  },
-}));
-
 const marks = [
   {
     value: 0,
@@ -118,9 +104,6 @@ const marks = [
     label: "10yrs",
   },
 ];
-function textValue(value) {
-  return value / 10;
-}
 
 const rangeMarks = [
   {
@@ -183,90 +166,90 @@ function rangeValueHandler(value) {
   return value * 1000;
 }
 
-export default function TheBasics({ jobId, onSubmit, basic, errors }) {
-  // console.log("BASIC ERROR", errors);
-  // console.log("BASIC ", basic);
-  const i18n = locale.en;
+function textValue(value) {
+  return value / 10;
+}
+
+function rangeValueExperience(value) {
+  return value / 10;
+}
+
+const i18n = locale.en;
+
+export default function TheBasics({ changeStep }) {
   const dispatch = useDispatch();
-  const [value, setValue] = useState([57]);
   const [basicData, setBasicData] = useState(BASIC);
-  const [titles, setTitles] = useState([]);
-  const [skills, setSkills] = useState([]);
-  const [workExperience, setWorkExperience] = useState([]);
-  const [qualifications, setQualifications] = useState([]);
-  const [requiredQua, setRequiredQua] = useState([]);
-  const [currency, setCurrency] = useState([]);
-  const [roleTypes, setRoleTypes] = useState([]);
-  const [workSetup, setWorkSetup] = useState([]);
-  const [salary, setSalary] = useState([]);
-  const [tools, setTools] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const [towns, setTowns] = useState([]);
-  const [townsMain, setTownsMain] = useState([]);
-  const [salaryObj, setSalaryObj] = useState(SALARY_OBJ);
   const [selectedValue, setSelectedValue] = useState("crayon recruit");
+  const [salary, setSalary] = useState([]);
+  const [salaryObj, setSalaryObj] = useState(SALARY_OBJ);
+  const [townsMain, setTownsMain] = useState([]);
   const [rangeValue, setRangeValue] = useState([0, 20]);
+  const [expRange, setExpRange] = useState([0, 1]);
+  const [errors, setErrors] = useState([]);
+  const history = useNavigate();
+  const {
+    titles,
+    skills,
+    tools,
+    workExperience,
+    qualifications,
+    requiredQua,
+    currency,
+    country,
+    town,
+    roleTypes,
+    workSetup,
+  } = useSelector((state) => state.postJobs);
 
-  const handleRangeSliderChange = (event, newValue) => {
-    setRangeValue(newValue);
-    let newArr = rangeValue.map((val) => val * 1000);
-    //  setRangeValue(newArr)
-    const newBasicData = {
-      ...basicData,
-      [event.target.name]: newArr,
-    };
+  const { jobId, duplicate } = useParams();
 
-    setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
-  };
-
-  const handleRangeSliderChange2 = (event, newValue) => {
-    setRangeValue(newValue);
-    let newArr = rangeValue.map((val) => val * 5);
-    const newBasicData = {
-      ...basicData,
-      [event.target.name]: newArr,
-    };
-
-    setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
-  };
-  const handleRadioChange = (event) => {
-    setSelectedValue(event.target.value);
-    const newBasicData = {
-      ...basicData,
-      // [name || id]: slider ? sliderValue : value,
-      job_type: event.target.value,
-    };
-
-    setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
-  };
-
-  useEffect(() => {
-    if (isEmpty(basic)) {
-      onSubmit("basic", BASIC);
-    } else {
-      setBasicData(basic);
+  const getAllTheBasics = async () => {
+    try {
+      dispatch(setLoading(true));
+      const { payload } = await dispatch(getBasicData(jobId)); //basicData.job_id
+      if (payload?.status == "success") {
+        const basic = payload?.data;
+        const salary = basic.salary.map((item) => {
+          return basic.job_role_type != "freelance" ? item / 1000 : item / 5;
+        });
+        const experience = basic.experience.map((item) => {
+          return item * 10;
+        });
+        if (basic?.country_id != null) {
+          let temp = town.filter((val) => {
+            return val.region_id == basic?.country_id;
+          });
+          setTownsMain(temp);
+        }
+        setExpRange(experience);
+        setRangeValue(salary);
+        setBasicData(basic);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispatch(setLoading(false));
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
     }
-  }, []);
+  };
 
   const getAllData = async () => {
     try {
       dispatch(setLoading(true));
-      const [
-        titles,
-        skills,
-        tools,
-        workExperience,
-        qualifications,
-        requiredQua,
-        currency,
-        country,
-        town,
-        roleTypes,
-        workSetup,
-      ] = await Promise.all([
+      await Promise.all([
         dispatch(getTitles()),
         dispatch(getSkills()),
         dispatch(getTools()),
@@ -279,29 +262,9 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
         dispatch(getRoleTypes()),
         dispatch(getWorkSetup()),
       ]);
-      setTitles(titles.payload.data);
-      setCurrency(currency.payload.data);
-      setSkills(skills.payload.data);
-      setQualifications(qualifications.payload.data);
-      // setRequiredQua(requiredQua.payload.data);
-      const updatedReqHigh = requiredQua.payload.data.map((val) => {
-        const { highest_qualification_id, description, ...rest } = val;
-        // const desc = val.description;
-        return { id: highest_qualification_id, name: description, ...rest };
-      });
-      setRequiredQua(updatedReqHigh);
-
-      setWorkExperience(workExperience.payload.data);
-      setRoleTypes(roleTypes.payload.data);
-      setWorkSetup(workSetup.payload.data);
-
-      // const exp = workExperience.payload.data;
-
-      setTools(addId(tools.payload.data, "tool_id", "name"));
-      setCountries(addId(country.payload.data, "region_id", "name"));
-      setTowns(addId(town.payload.data, "town_id", "name"));
       dispatch(setLoading(false));
     } catch (error) {
+      console.log(error);
       dispatch(setLoading(false));
       dispatch(
         setAlert({
@@ -318,7 +281,7 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
       dispatch(setLoading(true));
       const {
         payload: { data },
-      } = await dispatch(getSalary(basicData.currency_id));
+      } = await dispatch(getSalary(basicData?.currency_id));
       setSalary(data);
       setSalaryObj({
         min: data[0].max,
@@ -327,6 +290,7 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
       });
       dispatch(setLoading(false));
     } catch (error) {
+      console.log(error);
       dispatch(setLoading(false));
       dispatch(
         setAlert({
@@ -337,123 +301,51 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
       );
     }
   };
+  const saveBasic = async () => {
+    try {
+      const { payload } = await dispatch(addBasicData(basicData));
+      if (payload?.status == "success") {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.SUCCESS,
+            msg: "Basic data created successfully!",
+          })
+        );
+        history(`/employer/post-a-job/${payload?.data?.job_id}`);
+        changeStep(2);
+        setErrors([]);
+      } else if (payload?.status == "error") {
+        setErrors(payload?.errors);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
 
-  const expHandleChange = (event) => {
-    const {
-      target: { value },
-      target: { name },
-      target: { id },
-    } = event;
-
+  const handleRadioChange = (event) => {
+    setSelectedValue(event.target.value);
     const newBasicData = {
       ...basicData,
-      [name]: value / 10,
+      // [name || id]: slider ? sliderValue : value,
+      job_type: event.target.value,
     };
+
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
-  };
-
-  useEffect(() => {
-    if (basicData.currency_id) {
-      getSalaryData();
-    }
-  }, [basicData.currency_id]);
-
-  useEffect(() => {
-    getAllData();
-  }, []);
-
-  const getQuaValue = () => {
-    if (basicData.preferred_qualification_ids?.length == 0) {
-      return [];
-    }
-    return basicData.preferred_qualification_ids?.map(
-      (id) => qualifications?.find((qua) => qua.id == id) || id
-    );
-  };
-  const getSkillValue = () => {
-    if (basicData.skills?.length == 0) {
-      return [];
-    }
-    return basicData.skills?.map(
-      (id) => skills?.find((skill) => skill.id == id) || id
-    );
-  };
-  const getToolValue = () => {
-    if (basicData.tools?.length == 0) {
-      return [];
-    }
-    return basicData.tools?.map(
-      (id) => tools?.find((tool) => tool.id == id) || id
-    );
-  };
-
-  const handleChange = (event) => {
-    const {
-      target: { value },
-      target: { name },
-      target: { id },
-    } = event;
-    let slider = false,
-      sliderValue = "";
-
-    if (name == "salary_id") {
-      slider = true;
-      sliderValue = salary.find((sal) => sal.max == value).salary_id;
-    }
-    const newBasicData = {
-      ...basicData,
-      [name || id]: slider ? sliderValue : value,
-    };
-    if (name == "country_id") {
-      let temp = towns.filter((val) => {
-        return val.region_id == value;
-      });
-      setTownsMain(temp);
-    }
-    setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
-  };
-
-  const handleWorkSetup = (event) => {
-    const {
-      target: { value },
-      target: { name },
-      target: { id },
-    } = event;
-    const newBasicData = {
-      ...basicData,
-      [name || id]: workSetup.find((work) => work.id == value).name,
-    };
-    setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
-  };
-  const handleRequiredQualificationLevel = (event) => {
-    const {
-      target: { value },
-      target: { name },
-      target: { id },
-    } = event;
-    const newBasicData = {
-      ...basicData,
-      [name || id]: requiredQua.find((work) => work?.id == value)?.id,
-    };
-    setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
-  };
-  const handleJobRoleChange = (event) => {
-    const {
-      target: { value },
-      target: { name },
-      target: { id },
-    } = event;
-
-    const newBasicData = {
-      ...basicData,
-      [name]: roleTypes.find((role) => role.id == value).name,
-    };
-    setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const handleAutoComplete = (event, newValue, id) => {
@@ -476,16 +368,149 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
       };
     }
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
+  };
+
+  const handleJobRoleChange = (event) => {
+    const {
+      target: { value },
+      target: { name },
+      target: { id },
+    } = event;
+
+    const newBasicData = {
+      ...basicData,
+      [name]: roleTypes.find((role) => role.id == value).name,
+    };
+    setBasicData(newBasicData);
+  };
+
+  const handleChange = (event) => {
+    const {
+      target: { value },
+      target: { name },
+      target: { id },
+    } = event;
+    let slider = false,
+      sliderValue = "";
+
+    console.log(value);
+
+    if (name == "salary_id") {
+      slider = true;
+      sliderValue = salary.find((sal) => sal.max == value).salary_id;
+    }
+    const newBasicData = {
+      ...basicData,
+      [name || id]: slider ? sliderValue : value,
+    };
+    if (name == "country_id") {
+      let temp = town.filter((val) => {
+        return val.region_id == value;
+      });
+      setTownsMain(temp);
+    }
+    setBasicData(newBasicData);
+  };
+
+  const handleRangeSliderChange = (event, newValue) => {
+    setRangeValue(newValue);
+    let newArr = newValue.map((val) => val * 1000);
+    const newBasicData = {
+      ...basicData,
+      [event.target.name]: newArr,
+    };
+
+    const filteredErrors = errors?.filter(
+      (item) => item.key != event.target.name
+    );
+    setErrors(filteredErrors);
+    setBasicData(newBasicData);
+  };
+
+  const handleRangeSliderChange2 = (event, newValue) => {
+    setRangeValue(newValue);
+    let newArr = newValue.map((val) => val * 5);
+    const newBasicData = {
+      ...basicData,
+      [event.target.name]: newArr,
+    };
+
+    const filteredErrors = errors?.filter(
+      (item) => item.key != event.target.name
+    );
+    setErrors(filteredErrors);
+    setBasicData(newBasicData);
+  };
+
+  const handleWorkSetup = (event) => {
+    const {
+      target: { value },
+      target: { name },
+      target: { id },
+    } = event;
+    const newBasicData = {
+      ...basicData,
+      [name || id]: workSetup.find((work) => work.id == value).name,
+    };
+    setBasicData(newBasicData);
+  };
+
+  const getQuaValue = () => {
+    if (basicData.preferred_qualification_ids?.length == 0) {
+      return [];
+    }
+    return basicData.preferred_qualification_ids?.map(
+      (id) => qualifications?.find((qua) => qua.id == id) || id
+    );
+  };
+  const getSkillValue = () => {
+    if (basicData.skills?.length == 0) {
+      return [];
+    }
+    return basicData.skills?.map(
+      (id) => skills?.find((skill) => skill.id == id) || id
+    );
+  };
+  const getToolValue = () => {
+    if (basicData.tools?.length == 0) {
+      return [];
+    }
+
+    return basicData.tools?.map(
+      (id) => tools?.find((tool) => tool.id == id) || id
+    );
+  };
+
+  const handleRequiredQualificationLevel = (event) => {
+    const {
+      target: { value },
+      target: { name },
+      target: { id },
+    } = event;
+    const newBasicData = {
+      ...basicData,
+      [name || id]: requiredQua.find((work) => work?.id == value)?.id,
+    };
+    setBasicData(newBasicData);
   };
 
   const handleMultipleAutoComplete = (event, newValue, id) => {
+    // console.log(newValue, id);
     let newBasicData = {
       ...basicData,
       [id]: newValue.map((val) => val?.inputValue || val?.id || val),
     };
+    if (newBasicData.tools.length == 6) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: "Maximum limit is 5",
+        })
+      );
+      return;
+    }
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
   const handleSwitch = (event) => {
     const newBasicData = {
@@ -493,8 +518,36 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
       [event.target.id]: Number(event.target.checked),
     };
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
+
+  const expHandleChange = (event, newValue) => {
+    console.log(event, newValue, event.target.name);
+    setExpRange(newValue);
+    let newArr = newValue?.map((val) => Math.floor(val / 10));
+    console.log(newArr);
+    const newBasicData = {
+      ...basicData,
+      [event.target.name]: newArr,
+    };
+
+    const filteredErrors = errors?.filter(
+      (item) => item.key != event.target.name
+    );
+    setErrors(filteredErrors);
+    setBasicData(newBasicData);
+  };
+
+  useEffect(() => {
+    getAllData();
+  }, []);
+
+  useEffect(() => {
+    jobId != undefined && getAllTheBasics();
+  }, [jobId]);
+
+  useEffect(() => {
+    basicData.currency_id != "" && getSalaryData();
+  }, [basicData.currency_id]);
 
   return (
     <Box>
@@ -653,6 +706,8 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               {i18n["postAJob.jobTitleLabel"]}
             </InputLabel>
             <AutoComplete
+              showAddOption={true}
+              allowCustomInput={true}
               id="job_title_id"
               value={
                 titles?.find((title) => title.id == basicData.job_title_id) ||
@@ -663,13 +718,15 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               placeholder={i18n["postAJob.jobTitle"]}
               data={titles}
             ></AutoComplete>
-            {errors.find((error) => error.key == "job_title_id") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "job_title_id").message
-                }`}
-              </Typography>
-            )}
+            {!titles?.find((title) => title.id == basicData.job_title_id) &&
+              !basicData.job_title_id &&
+              errors?.find((error) => error.key == "job_title_id") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "job_title_id").message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -689,16 +746,18 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               value={basicData.job_role_type}
               onHandleChange={handleJobRoleChange}
               options={roleTypes}
-              sx={{ width: "95%" }}
+              sx={{ width: "96%" }}
               placeholder={i18n["postAJob.roleType"]}
             />
-            {errors.find((error) => error.key == "job_role_type") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "job_role_type").message
-                }`}
-              </Typography>
-            )}
+            {!basicData.job_role_type &&
+              errors?.find((error) => error.key == "job_role_type") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "job_role_type")
+                      .message
+                  }`}
+                </Typography>
+              )}
           </Box>
         </Box>
 
@@ -720,23 +779,24 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
                 fontWeight: 500,
               }}
             >
-              {} {i18n["postAJob.currencyIdLabel"]}
+              {i18n["postAJob.currencyIdLabel"]}
             </InputLabel>
             <SelectMenu
               name="currency_id"
               value={basicData.currency_id}
               onHandleChange={handleChange}
               options={currency}
-              sx={{ width: "95%" }}
+              sx={{ width: "97%" }}
               placeholder={i18n["postAJob.preferredCurrency"]}
             />
-            {errors.find((error) => error.key == "currency_id") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "currency_id").message
-                }`}
-              </Typography>
-            )}
+            {!basicData.currency_id &&
+              errors?.find((error) => error.key == "currency_id") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "currency_id").message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box
             sx={{
@@ -761,8 +821,9 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
                 ? i18n["postAJob.salaryRangeLable2"]
                 : i18n["postAJob.salaryRangeLable"]}
             </InputLabel>
-
             <Slider
+              disableSwap
+              sx={{ width: "92%", ml: 1 }}
               disabled={!basicData.currency_id}
               name="salary"
               getAriaLabel={() => "Temperature range"}
@@ -774,7 +835,7 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               }
               color="redButton100"
               valueLabelDisplay="auto"
-              step={basicData.job_role_type == "freelance" && 1}
+              // step={basicData.job_role_type == "freelance" && 1}
               valueLabelFormat={
                 basicData.job_role_type == "freelance"
                   ? rangeValueHandler2
@@ -791,9 +852,9 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
                   : rangeMarks
               }
             />
-            {errors.find((error) => error.key == "salary") && (
+            {errors?.find((error) => error.key == "salary") && (
               <Typography color={"red"}>
-                {`*${errors.find((error) => error.key == "salary").message}`}
+                {`*${errors?.find((error) => error.key == "salary").message}`}
               </Typography>
             )}
           </Box>
@@ -818,17 +879,19 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               name="country_id"
               value={basicData.country_id}
               onHandleChange={handleChange}
-              options={countries}
+              options={country}
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.countryPlaceHolder"]}
             />
-            {errors.find((error) => error.key == "job_role_type") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "job_role_type").message
-                }`}
-              </Typography>
-            )}
+            {!basicData.country_id &&
+              errors?.find((error) => error.key == "job_role_type") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "job_role_type")
+                      .message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -848,19 +911,22 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               name="town_id"
               disabled={!basicData.country_id}
               value={
-                towns.find((val) => val.town_id == basicData.town_id)?.name ||
+                town?.find((val) => val.town_id == basicData.town_id)?.name ||
                 ""
               }
               onHandleChange={handleChange}
               options={townsMain}
-              sx={{ width: "95%" }}
+              sx={{ width: "96%" }}
               placeholder={i18n["postAJob.townPlaceHolder"]}
             />
-            {errors.find((error) => error.key == "town_id") && (
-              <Typography color={"red"}>
-                {`*${errors.find((error) => error.key == "town_id").message}`}
-              </Typography>
-            )}
+            {!town?.find((val) => val.town_id == basicData.town_id)?.name &&
+              errors?.find((error) => error.key == "town_id") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "town_id").message
+                  }`}
+                </Typography>
+              )}
           </Box>
         </Box>
 
@@ -886,13 +952,14 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.workSetupPlaceholder"]}
             />
-            {errors.find((error) => error.key == "work_setup") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "work_setup").message
-                }`}
-              </Typography>
-            )}
+            {!basicData.work_setup &&
+              errors?.find((error) => error.key == "work_setup") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "work_setup").message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -908,19 +975,21 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               {i18n["postAJob.toolsLable"]}
             </InputLabel>
             <AutoComplete
+              limitTags={5}
               multiple={true}
               id="tools"
               value={getToolValue()}
               onChange={handleMultipleAutoComplete}
-              sx={{ width: "95%" }}
+              sx={{ width: "96%", display: "inline-table" }}
               placeholder={i18n["postAJob.tools"]}
               data={tools}
             ></AutoComplete>
-            {errors.find((error) => error.key == "tools") && (
-              <Typography color={"red"}>
-                {`*${errors.find((error) => error.key == "tools").message}`}
-              </Typography>
-            )}
+            {getToolValue() == "" &&
+              errors?.find((error) => error.key == "tools") && (
+                <Typography color={"red"}>
+                  {`*${errors?.find((error) => error.key == "tools").message}`}
+                </Typography>
+              )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", mb: 3 }}>
@@ -941,15 +1010,16 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
             id="skills"
             value={getSkillValue()}
             onChange={handleMultipleAutoComplete}
-            sx={{ width: "98.5%" }}
+            sx={{ width: "98%", display: "inline-table" }}
             placeholder={i18n["postAJob.skills"]}
             data={skills}
           ></AutoComplete>
-          {errors.find((error) => error.key == "skills") && (
-            <Typography color={"red"}>
-              {`*${errors.find((error) => error.key == "skills").message}`}
-            </Typography>
-          )}
+          {getSkillValue() == "" &&
+            errors?.find((error) => error.key == "skills") && (
+              <Typography color={"red"}>
+                {`*${errors?.find((error) => error.key == "skills").message}`}
+              </Typography>
+            )}
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
@@ -974,17 +1044,18 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.requiredQualificationLevel"]}
             />
-            {errors.find(
-              (error) => error.key == "required_qualification_id"
-            ) && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find(
-                    (error) => error.key == "required_qualification_id"
-                  ).message
-                }`}
-              </Typography>
-            )}
+            {!basicData.required_qualification_id &&
+              errors?.find(
+                (error) => error.key == "required_qualification_id"
+              ) && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find(
+                      (error) => error.key == "required_qualification_id"
+                    ).message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -1004,16 +1075,16 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               id="preferred_qualification_ids"
               value={getQuaValue()}
               onChange={handleMultipleAutoComplete}
-              sx={{ width: "95%" }}
+              sx={{ width: "96%" }}
               placeholder={i18n["postAJob.preferredQualification"]}
               data={qualifications}
             ></AutoComplete>
-            {errors.find(
+            {errors?.find(
               (error) => error.key == "preferred_qualification_ids"
             ) && (
               <Typography color={"red"}>
                 {`*${
-                  errors.find(
+                  errors?.find(
                     (error) => error.key == "preferred_qualification_ids"
                   ).message
                 }`}
@@ -1035,24 +1106,25 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
               {i18n["postAJob.yearsWorkExperienceLabel"]}
             </InputLabel>
             <Slider
-              name="experience_id"
-              aria-label="Custom marks"
-              // defaultValue={0}
-              // value={basicData.experience_id*10}
-              //   value={experiences.find((val)=>val.id === basicData.experience_id)?.id * 10 || 0}
-              color="redButton100"
-              getAriaValueText={textValue}
-              step={10}
+              disableSwap
+              sx={{ width: "46%" }}
+              // disabled={salaryObj.step == 0}
+              name="experience"
+              getAriaLabel={() => "Temperature range"}
+              value={expRange}
+              // step={basicData.employment_type == "freelance" && 1}
               onChange={expHandleChange}
+              color="redButton100"
               valueLabelDisplay="auto"
-              valueLabelFormat={textValue}
+              valueLabelFormat={rangeValueExperience}
+              getAriaValueText={rangeValueExperience}
+              step={5}
               marks={marks}
-              sx={{ width: "47%" }}
             />
-            {errors.find((error) => error.key == "experience_id") && (
+            {errors?.find((error) => error.key == "experience") && (
               <Typography color={"red"}>
                 {`*${
-                  errors.find((error) => error.key == "experience_id").message
+                  errors?.find((error) => error.key == "experience").message
                 }`}
               </Typography>
             )}
@@ -1107,6 +1179,21 @@ export default function TheBasics({ jobId, onSubmit, basic, errors }) {
             onChange={handleSwitch}
           />
         </Box>
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <StyledButton
+          onClick={saveBasic}
+          // onClick={handleNext}
+          variant="contained"
+          color="redButton100"
+        >
+          {i18n["postAJob.theDetails"]}
+        </StyledButton>
       </Box>
     </Box>
   );

@@ -17,11 +17,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LanguageIcon from "@mui/icons-material/Language";
 import { InputBase, Paper } from "@mui/material";
-import { styled, alpha } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import eye from "../../../assets/eye.svg";
 import send from "../../../assets/send.svg";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
-import Switch from "@mui/material/Switch";
 import PlaceIcon from "@mui/icons-material/Place";
 import EmailIcon from "@mui/icons-material/Email";
 import CallIcon from "@mui/icons-material/Call";
@@ -33,6 +32,8 @@ import { useDispatch } from "react-redux";
 import { setAlert } from "../../../redux/configSlice";
 import { ALERT_TYPE } from "../../../utils/Constants";
 import { convertDatetimeAgo, dateConverter } from "../../../utils/DateTime";
+import { Link, useLocation } from "react-router-dom";
+import jwt_decode from "jwt-decode";
 
 const label = "grit score";
 const label1 = "applied";
@@ -177,23 +178,6 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
   },
 }));
 
-const BlueSwitch = styled(Switch)(({ theme }) => ({
-  "& .MuiSwitch-switchBase.Mui-checked": {
-    color: theme.palette.blueButton400.main,
-    "&:hover": {
-      backgroundColor: alpha(
-        theme.palette.blueButton400.main,
-        theme.palette.action.hoverOpacity
-      ),
-    },
-  },
-  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-    backgroundColor: theme.palette.blueButton400.main,
-  },
-  "& .MuiSwitch-track": {
-    marginTop: "-9px",
-  },
-}));
 const StyledTextField = styled(OutlinedInput)(({ theme }) => ({
   width: "100%",
   margin: "8px 0",
@@ -210,26 +194,24 @@ const StyledTextField = styled(OutlinedInput)(({ theme }) => ({
     borderRadius: "10px",
   },
 }));
-function valuetext(value) {
-  return `${value}°C`;
-}
-const labels = ["Applicants", "Shortlisted", "Interviews"];
 
-export default function JobCard({
-  index,
-  jobContent,
-  onManageTalent,
-  getJobList,
-  showManageJob,
-}) {
+export default function JobCard({ index, jobContent, getJobList }) {
   const i18n = locale.en;
   const theme = useTheme();
   const dispatch = useDispatch();
-  const [chartData, setChartData] = useState([90, 99, 99]);
+
   const [isHovered, setIsHovered] = useState(false);
-  const [colorKey, setColorKey] = useState("color");
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+
+  const location = useLocation();
+  const include = location.pathname.includes("pending-jobs");
+
+  const token = localStorage?.getItem("token");
+  let decodedToken;
+  if (token) {
+    decodedToken = jwt_decode(token);
+  }
+
+  console.log(decodedToken);
 
   const handleApprove = async (job_id, employer_industries) => {
     let industry = employer_industries?.map((val) => val?.industry_id);
@@ -279,18 +261,6 @@ export default function JobCard({
     }
   };
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleHoverEnter = () => {
-    setColorKey("hover");
-  };
-  const handleHoverLeave = () => {
-    setColorKey("color");
-  };
-  const handleManageTalent = (event, activeJobId) => {
-    onManageTalent(activeJobId);
-  };
   return (
     <StyledAccordion>
       <AccordionSummary
@@ -469,7 +439,7 @@ export default function JobCard({
                 mr: 1,
               }}
             >
-              {jobContent?.town?.name + "," + jobContent?.town?.region?.name}
+              {jobContent?.town?.name + ", " + jobContent?.town?.region?.name}
             </Typography>
             <StyledHR></StyledHR>
             <Typography
@@ -572,21 +542,40 @@ export default function JobCard({
             <IconButton>
               <PlayCircleFilledIcon color="grayButton300" />
             </IconButton>
-            <SmallButton
-              color={
-                (jobContent?.job_status?.name == "paused" && "redButton") ||
-                (jobContent?.job_status?.name == "closed" && "redButton") ||
-                (jobContent?.job_status?.name == "pending" && "orangeButton") ||
-                (jobContent?.job_status?.name == "active" &&
-                  "lightGreenButton300")
-              }
-              endIcon={<KeyboardArrowDownIcon />}
-              height={24}
-              fontWeight={700}
-              label={jobContent?.job_status?.name}
-              borderRadius="25px"
-              mr="8px"
-            ></SmallButton>
+            {decodedToken?.data?.role_id == 4 ? (
+              <SmallButton
+                color={
+                  (jobContent?.job_status?.name == "paused" && "redButton") ||
+                  (jobContent?.job_status?.name == "closed" && "redButton") ||
+                  (jobContent?.job_status?.name == "pending" &&
+                    "orangeButton") ||
+                  (jobContent?.job_status?.name == "active" &&
+                    "lightGreenButton300")
+                }
+                height={24}
+                fontWeight={700}
+                label={jobContent?.job_status?.name}
+                borderRadius="25px"
+                mr="8px"
+              ></SmallButton>
+            ) : (
+              <SmallButton
+                color={
+                  (jobContent?.job_status?.name == "paused" && "redButton") ||
+                  (jobContent?.job_status?.name == "closed" && "redButton") ||
+                  (jobContent?.job_status?.name == "pending" &&
+                    "orangeButton") ||
+                  (jobContent?.job_status?.name == "active" &&
+                    "lightGreenButton300")
+                }
+                endIcon={<KeyboardArrowDownIcon />}
+                height={24}
+                fontWeight={700}
+                label={jobContent?.job_status?.name}
+                borderRadius="25px"
+                mr="8px"
+              ></SmallButton>
+            )}
 
             <IconButton
               aria-label="edit"
@@ -880,7 +869,7 @@ export default function JobCard({
                   mr="4px"
                 ></SmallButton>
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+              {/*<Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                 <Typography
                   sx={{
                     fontSize: "12px",
@@ -914,7 +903,7 @@ export default function JobCard({
                   label="Spanish"
                   mr="4px"
                 ></SmallButton>
-              </Box>
+              </Box>*/}
             </Box>
             <Box sx={{ mt: 1 }}>
               <Typography
@@ -1094,32 +1083,38 @@ export default function JobCard({
                   </Box>
                 </Box>
               </Box>
-              {/* <Box sx={{ mb: 1 }}>
-                                <Button variant='contained' color='redButton' sx={{ padding: '16px 32px !important', mr: 1 }} >{i18n['allTalent.history']}</Button>
-                                <Button variant='contained' color='redButton' sx={{ padding: '16px 32px !important', mr: 1 }} >{i18n['allTalent.chat']}</Button>
-                                <Button variant='contained' color='redButton' sx={{ padding: '16px 32px !important' }} >{i18n['allTalent.match']}</Button>
-                            </Box> */}
-              <Box
-                sx={{
-                  mt: 2,
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
-                <Button
-                  sx={{
-                    boxShadow: 0,
-                    fontSize: "12px",
-                    width: "90%",
-                    height: "43px",
+
+              {!include && (
+                <Link
+                  to={`/employer/manage-talent/${jobContent?.job_id}`}
+                  target="_blank"
+                  style={{
+                    textDecoration: "none",
                   }}
-                  variant="contained"
-                  color="redButton"
-                  onClick={() => showManageJob()}
                 >
-                  {i18n["pendingJobs.managebtn"]}
-                </Button>
-              </Box>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Button
+                      sx={{
+                        boxShadow: 0,
+                        fontSize: "12px",
+                        width: "90%",
+                        height: "43px",
+                      }}
+                      variant="contained"
+                      color="redButton"
+                      // onClick={() => showManageJob()}
+                    >
+                      {i18n["pendingJobs.managebtn"]}
+                    </Button>
+                  </Box>
+                </Link>
+              )}
             </Box>
             <Box sx={{ mt: 4 }}>
               <Typography

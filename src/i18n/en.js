@@ -277,6 +277,7 @@ const en = {
     status: "status: active",
   },
   myCV: {
+    workJobTitle: "Enter your job title",
     crayonVitae: "Crayon Vitae",
     uploadCV: "upload CV",
     scrapeCV: "scrape CV",
@@ -384,7 +385,7 @@ const en = {
     whatTheyWillDo: "what they’ll do (role responsibilities)",
     whatTheyWillNeed: "what they’ll need (role requirements)",
     screeningQuestionPara:
-      "You can add up to 5 screening questions (The candidate will requested to answer this these questions as part of their application)",
+      "You can add up to 5 screening questions (The candidate will be requested to answer this these questions as part of their application)",
     cultureAdd: "The culture add",
     preferredDominantPersonality: "preferred dominant personality",
     preferredShadowPersonality: "preferred shadow personality",
@@ -514,7 +515,7 @@ const en = {
     companyIndustryPlace:
       'Enter your company industry and press "Tab" to add more',
     companyDescription: "Company Description",
-    companyDescriptionPlace: "Enter your company description..",
+    companyDescriptionPlace: "Enter your company description...",
     moveAndScale: "move and scale",
     upload: "upload",
   },

@@ -19,7 +19,10 @@ import locale from "../../../i18n/locale";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { getTalentList } from "../../../redux/guest/talentSlice";
+import {
+  getFilteredTalent,
+  getTalentList,
+} from "../../../redux/guest/talentSlice";
 import { useSelector } from "react-redux";
 import { getAllIndustries, setAlert } from "../../../redux/configSlice";
 import { getAllJobs, getFilteredJobs } from "../../../redux/guest/jobsSlice";
@@ -28,6 +31,7 @@ import { getAllStages } from "../../../redux/stages";
 import { get } from "lodash";
 import jwt_decode from "jwt-decode";
 import { getAllTypes } from "../../../redux/allTypes";
+import { getAllTalentType } from "../../../redux/guest/talentTypes";
 
 export default function Talent() {
   const i18n = locale.en;
@@ -35,10 +39,17 @@ export default function Talent() {
   const dispatch = useDispatch();
   const allIndustries = useSelector((state) => state.config.industries);
   const allTypes = useSelector((state) => state.configAllTypes?.types);
-  const [allJobs, setAllJobs] = useState([]);
+  // const allJobTypes = useSelector((state) => state.jobtype.jobRoleType);
+  const allTalentTypes = useSelector((state) => state.talenttype.talentType);
+  // const jobTypes = allJobTypes.filter((item) => !item.job_crayon_type_id);
+  // const [allJobs, setAllJobs] = useState([]);
   const [filters, setFilters] = useState([allIndustries[0]?.id]);
   const [filtersType, setFiltersType] = useState([allTypes[0]?.id]);
+  const [filtersJobType, setFiltersJobType] = useState([allTalentTypes[0]?.id]);
+
   const [all_talent, setAll_talent] = useState([]);
+  const [lastKey, setLastKey] = useState("");
+
   const isolateTouch = (e) => {
     e.stopPropagation();
     e.preventDefault();
@@ -50,17 +61,32 @@ export default function Talent() {
     decodedToken = jwt_decode(token);
   }
 
-  const getTalent = async (selectedFilters = filters) => {
+  console.log(allTalentTypes);
+
+  const getTalent = async (
+    selectedFilters = filters,
+    personalityType = filtersType,
+    jobtype = filtersJobType,
+    lastkeyy
+  ) => {
     if (selectedFilters.length == 0) {
       setAll_talent([]);
-    } else if (selectedFilters.length == 1) {
-      const lastKey = all_talent?.[all_talent.length - 1]?.user_id || "";
+    } else if (
+      selectedFilters.length == 1 &&
+      selectedFilters[0] == 1111 &&
+      jobtype.length == 1 &&
+      jobtype[0] == 1111 &&
+      personalityType.length == 1 &&
+      personalityType[0] == 1111
+    ) {
+      // const lastKey = all_talent?.[all_talent.length - 1]?.user_id || "";
       const data = {
-        lastKey: lastKey,
+        lastKey: lastkeyy,
         user_id: token ? decodedToken?.data?.user_id : "",
       };
       const { payload } = await dispatch(getTalentList(data));
       if (payload?.status == "success") {
+        setLastKey(payload.data[payload.data.length - 1]?.user_id);
         setAll_talent((prevState) => [...prevState, ...payload.data]);
       } else {
         dispatch(
@@ -72,7 +98,28 @@ export default function Talent() {
         );
       }
     } else {
-      console.log("ERROR!!!");
+      // const lastKey = all_talent?.[all_talent.length - 1]?.user_id || "";
+      const data = {
+        selectedFilters: selectedFilters.toString(),
+        lastKey: lastkeyy?.toString(),
+        personalityType: personalityType.toString(),
+        user_id: token ? decodedToken?.data?.user_id : "",
+        jobtype: jobtype.toString(),
+      };
+      console.log(data);
+      const { payload } = await dispatch(getFilteredTalent(data));
+      if (payload?.status == "success") {
+        setLastKey(payload.data[payload.data.length - 1]?.user_id);
+        setAll_talent((prevState) => [...prevState, ...payload.data]);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
     }
   };
   const getIndustries = async () => {
@@ -81,25 +128,48 @@ export default function Talent() {
   const getTypes = async () => {
     await dispatch(getAllTypes());
   };
+  const getTalentTypes = async () => {
+    await dispatch(getAllTalentType());
+  };
 
   const onChangeFilter = (selectedFilter) => {
-    setAllJobs([]);
-    // setLastKey("");
+    setAll_talent([]);
+    setLastKey("");
     setFilters(selectedFilter);
-    getTalent(selectedFilter, filtersType);
+    getTalent(selectedFilter, filtersType, filtersJobType, "");
   };
 
   const onChangeFilterType = (selectedFilter) => {
-    setAllJobs([]);
-    // setLastKey("");
+    setAll_talent([]);
+    setLastKey("");
     setFiltersType(selectedFilter);
-    getTalent(filters, selectedFilter);
+    getTalent(filters, selectedFilter, filtersJobType, "");
+  };
+
+  const onChangeFilterJobType = (selectedFilter) => {
+    let jobs = [];
+    selectedFilter.map((type) => {
+      let selectedJobType = allTalentTypes.find(
+        (jobtype) => jobtype.id === type
+      );
+      jobs.push(selectedJobType.name);
+    });
+    setAll_talent([]);
+    setLastKey("");
+    setFiltersJobType(jobs);
+    getTalent(filters, filtersType, jobs, "");
   };
 
   useEffect(() => {
     getIndustries();
     getTypes();
-    getTalent([allIndustries[0]?.id], [allTypes[0]?.id]);
+    getTalentTypes();
+    getTalent(
+      [allIndustries[0]?.id],
+      [allTypes[0]?.id],
+      [allTalentTypes[0]?.id],
+      ""
+    );
   }, []);
   return (
     <Grid
@@ -124,9 +194,10 @@ export default function Talent() {
       <Grid xs={12} sm={6} md={8} lg={9} xl={10}>
         <SearchBar placeholder={i18n["jobs.searchPlaceholder"]} />
         <InfiniteScroll
+          key={`${filters} + ${filtersType} + ${filtersJobType}`}
           style={{ overflow: "hidden" }}
           dataLength={all_talent.length}
-          next={getTalent}
+          next={() => getTalent(filters, filtersType, filtersJobType, lastKey)}
           hasMore={true}
           endMessage={
             <p style={{ textAlign: "center" }}>
@@ -144,6 +215,7 @@ export default function Talent() {
               marginTop: "60px",
             }}
           >
+            {console.log(all_talent)}
             {all_talent.length > 0 ? (
               all_talent?.map((talent) => (
                 <Grid xl={3} lg={4} md={6} xs={12} key={talent}>
@@ -189,8 +261,10 @@ export default function Talent() {
       </Grid>
       <Box>
         <ButtonPanel
-          panelData={TALENT_RIGHT_JOB_TYPES_BUTTON_GROUP}
+          topMargin={true}
+          panelData={allTalentTypes}
           side="right"
+          onChangeFilter={onChangeFilterJobType}
         />
         <ButtonPanel
           panelData={TALENT_RIGHT_JOB_ACTIVITY_BUTTON_GROUP}

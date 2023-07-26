@@ -11,7 +11,11 @@ export const getTalentList = createAsyncThunk(
   async ({ lastKey, user_id }, { dispatch }) => {
     dispatch(setLoading(true));
     const { data } = await getApi(
-      "/gettalentslist?lastKey=" + lastKey + "&user_id=" + user_id
+      "/gettalentslist?lastKey=" +
+        lastKey +
+        "&user_id=" +
+        user_id +
+        "&industry_id=&personalitytype_id=&jobtype_id="
     );
     dispatch(setLoading(false));
     return data;
@@ -29,20 +33,39 @@ export const favouriteJob = createAsyncThunk(
   }
 );
 
-// export const getFilteredJobs = createAsyncThunk(
-//   "getFilteredJobs",
-//   async ({ selectedFilters, lastKey }, { dispatch }) => {
-//     dispatch(setLoading(true));
-//     const { data } = await getApi(
-//       "/getjobslist/filter?industry_id=" +
-//         selectedFilters +
-//         "&lastKey=" +
-//         lastKey
-//     );
-//     dispatch(setLoading(false));
-//     return data;
-//   }
-// );
+export const getFilteredTalent = createAsyncThunk(
+  "getFilteredTalent",
+  async (
+    { selectedFilters, lastKey, personalityType, user_id, jobtype },
+    { dispatch }
+  ) => {
+    if (selectedFilters === "1111" || selectedFilters === "all industries") {
+      selectedFilters = "";
+    }
+    if (jobtype === "1111" || jobtype === "all talent") {
+      jobtype = "";
+    }
+    if (personalityType === "1111" || personalityType === "all types") {
+      personalityType = "";
+    }
+
+    dispatch(setLoading(true));
+    const { data } = await getApi(
+      "/gettalentslist?lastKey=" +
+        lastKey +
+        "&user_id=" +
+        user_id +
+        "&industry_id=" +
+        selectedFilters +
+        "&personalitytype_id=" +
+        personalityType +
+        "&jobtype_id=" +
+        jobtype
+    );
+    dispatch(setLoading(false));
+    return data;
+  }
+);
 export const talentSlice = createSlice({
   name: "configtalent",
   initialState,

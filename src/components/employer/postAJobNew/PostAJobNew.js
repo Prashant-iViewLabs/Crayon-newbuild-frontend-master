@@ -46,9 +46,7 @@ export default function MyCV() {
         <Box sx={{ display: "flex", flexDirection: "column" }}>
           <ButtonPanel panelData={EMPLOYER_JOB_POSTING_SPEC_LEFT} side="left" />
         </Box>
-        <Grid xs={12} sm={6} md={8} lg={9} xl={10} sx={{
-              px: 3
-            }}>
+        <Grid xs={12} sm={6} md={8} lg={9} xl={10}>
           <Typography
             sx={{
               fontSize: "36px",

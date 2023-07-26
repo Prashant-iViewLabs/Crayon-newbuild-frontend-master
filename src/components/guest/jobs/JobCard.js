@@ -18,12 +18,9 @@ import {
   ALERT_TYPE,
   AUTHORIZED_TAB_ITEMS_CANDIDATE,
   AUTHORIZED_TAB_ITEMS_EMPLOYER,
-  CARD_RIGHT_BUTTON_GROUP,
-  ERROR_MSG,
   PUBLIC_TAB_ITEMS,
 } from "../../../utils/Constants";
 import Tooltip from "@mui/material/Tooltip";
-import Fade from "@mui/material/Fade";
 import SingleRadialChart from "../../common/SingleRadialChart";
 import SmallButton from "../../common/SmallButton";
 import CustomCard from "../../common/CustomCard";
@@ -34,16 +31,13 @@ import TextWrapper from "../../common/TextWrapper";
 import { convertDatetimeAgo } from "../../../utils/DateTime";
 import CustomDialog from "../../common/CustomDialog";
 import Login from "../../login/login";
-import Signup from "../../login/signup";
 import { useDispatch } from "react-redux";
 import { login } from "../../../redux/login/loginSlice";
 import { getLocalStorage, setLocalStorage } from "../../../utils/Common";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { setAlert } from "../../../redux/configSlice";
-import { Toolbar } from "@mui/material";
 import { favouriteJob } from "../../../redux/guest/talentSlice";
 import jwt_decode from "jwt-decode";
-import { getJobDetail } from "../../../redux/guest/jobsSlice";
 
 const label1 = "applied";
 const label2 = "shortlisted";
@@ -54,14 +48,9 @@ export default function JobCard({ index, job }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   let { pathname } = useLocation();
-  const [colorKey, setColorKey] = useState("color");
-  const [chartData1, setChartData1] = useState([320]);
-  const [chartData2, setChartData2] = useState([11]);
-  const [chartData3, setChartData3] = useState([3]);
   const [isHovered, setIsHovered] = useState(false);
   const [isStar, setIsStarSelected] = useState(job?.favourite);
   const [openLoginDialog, setOpenLoginDialog] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [currentTabs, setcurrentTabs] = useState(PUBLIC_TAB_ITEMS);
   const [activeTab, setActiveTab] = useState(pathname.slice(1));
   const [questions, setQuestions] = useState([]);
@@ -84,31 +73,6 @@ export default function JobCard({ index, job }) {
   if (token) {
     decodedToken = jwt_decode(token);
   }
-
-  const handleHoverEnter = () => {
-    setColorKey("hover");
-  };
-  const handleHoverLeave = () => {
-    setColorKey("color");
-  };
-
-  const handleCardClick = async () => {
-    try {
-      const { payload } = await dispatch(getJobDetail({ job_id: job?.job_id }));
-      if (payload?.status == "success") {
-        const jobData = payload?.data;
-        navigate(`/job-detail/${job?.job_id}`, { state: jobData });
-      }
-    } catch (error) {
-      dispatch(
-        setAlert({
-          show: true,
-          type: ALERT_TYPE.ERROR,
-          msg: ERROR_MSG,
-        })
-      );
-    }
-  };
 
   const handleStar = async () => {
     setIsStarSelected(!isStar);
@@ -355,21 +319,29 @@ export default function JobCard({ index, job }) {
           title={job?.title}
           placement="top"
         >
-          <Typography
-            sx={{
-              // minHeight: "60px",
-              fontWeight: 700,
-              fontSize: 20,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 1,
+          <Link
+            to={`/job-detail/${job?.job_id}`}
+            target={"_blank"}
+            style={{
+              textDecoration: "none",
+              color: theme.palette.black,
             }}
-            gutterBottom
-            onClick={handleCardClick}
           >
-            {job?.title.slice(0, 30)}
-          </Typography>
+            <Typography
+              sx={{
+                // minHeight: "60px",
+                fontWeight: 700,
+                fontSize: 20,
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+              }}
+              gutterBottom
+            >
+              {job?.title.slice(0, 30)}
+            </Typography>
+          </Link>
         </Tooltip>
         <Typography
           sx={{
@@ -560,7 +532,13 @@ export default function JobCard({ index, job }) {
               if (item !== undefined) {
                 return (
                   <SmallButton
-                    color={item?.trait?.name ? "grayButton200" : "purpleButton"}
+                    color={
+                      item?.trait?.name
+                        ? "grayButton200"
+                        : index == 1
+                        ? "brownButton"
+                        : "purpleButton"
+                    }
                     height={25}
                     label={item?.trait ? item?.trait?.name : item}
                     mr="4px"

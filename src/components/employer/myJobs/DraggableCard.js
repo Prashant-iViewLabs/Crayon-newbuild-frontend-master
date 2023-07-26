@@ -18,7 +18,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import PlaceIcon from "@mui/icons-material/Place";
-import profile from "../../../assets/profile2.svg";
+import profile from "../../../assets/profile.png";
 import drag_dots from "../../../assets/drag_dots.svg";
 import eye from "../../../assets/eye.svg";
 import play from "../../../assets/play.svg";
@@ -31,37 +31,23 @@ import thumbs_down from "../../../assets/thumbs_down.svg";
 import EmailIcon from "@mui/icons-material/Email";
 import CallIcon from "@mui/icons-material/Call";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import CloseIcon from "@mui/icons-material/Close";
-import RadialChart from "../../common/RadialChart";
 import ManIcon from "@mui/icons-material/Man";
 import locale from "../../../i18n/locale";
-import {
-  ALERT_TYPE,
-  CARD_RIGHT_BUTTON_GROUP,
-  ERROR_MSG,
-} from "../../../utils/Constants";
+import { ALERT_TYPE, ERROR_MSG } from "../../../utils/Constants";
 import SmallButton from "../../common/SmallButton";
 import SingleRadialChart from "../../common/SingleRadialChart";
-import CircularProgress, {
-  circularProgressClasses,
-} from "@mui/material/CircularProgress";
 import LinearProgress, {
   linearProgressClasses,
 } from "@mui/material/LinearProgress";
 import { convertDOB } from "../../../utils/DateTime";
-import CustomDialog from "../../common/CustomDialog";
 import { setAlert } from "../../../redux/configSlice";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { getCandidateCV, getQandA } from "../../../redux/employer/myJobsSlice";
-import { data } from "./ManageJob";
+import { Link, useNavigate } from "react-router-dom";
+import { getQandA } from "../../../redux/employer/myJobsSlice";
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
   height: 5,
   borderRadius: 5,
-  // marginTop: "8px",
   marginBottom: "8px",
   [`&.${linearProgressClasses.colorPrimary}`]: {
     backgroundColor:
@@ -77,7 +63,6 @@ const StyledHR = styled(Box)(({ theme }) => ({
   borderRight: "1px solid rgba(0, 0, 0, 0.3)",
   width: "0px",
   height: "10px",
-  // marginRight: '8px'
 }));
 const StyledAccordion = styled(Accordion)(({ theme }) => ({
   marginTop: 8,
@@ -90,16 +75,12 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
     padding: 0,
   },
   "& .MuiAccordionSummary-content": {
-    // flexDirection: 'column',
-    // margin: '2px 0 8px 0',
     margin: 0,
     ".summaryBox1": {
       margin: "8px 0",
       display: "flex",
       flexDirection: "column",
       justifyContent: "space-between",
-      // alignItems: 'start',
-      // marginRight: '20px'
     },
     ".summaryBox2": {
       display: "flex",
@@ -112,7 +93,6 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
       width: 24,
       maxHeight: { xs: 24 },
       maxWidth: { xs: 24 },
-      // borderRadius: 6
     },
     ".profileAvatar": {
       height: 30,
@@ -136,19 +116,6 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
     ".arrowFont": {
       fontSize: "1.1rem",
     },
-    "& .MuiTypography-root": {
-      // fontWeight: 700,
-      // fontSize: '14px',
-    },
-    "& .MuiButtonBase-root": {
-      // padding: '0 6px',
-      // fontSize: 10,
-      // fontWeight: 700,
-      // minWidth: 30,
-      // boxShadow: 'none',
-      // borderRadius: 2,
-      // height: '20px'
-    },
   },
   "& .MuiAccordionSummary-expandIconWrapper": {
     color: theme.palette.redButton.main,
@@ -164,16 +131,6 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
       display: "flex",
       padding: 0,
       marginTop: "-10px",
-      "& .MuiButtonBase-root": {
-        // padding: '0 6px',
-        // fontSize: 10,
-        // fontWeight: 700,
-        // minWidth: 30,
-        // boxShadow: 'none',
-        // padding: '1px 4px',
-        // borderRadius: 3,
-        // height: '20px'
-      },
       ".contentBox1": {
         display: "flex",
         justifyContent: "space-between",
@@ -182,7 +139,6 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
       ".contentBox2": {
         display: "flex",
         justifyContent: "space-between",
-        // padding: '0 8px'
       },
       ".contentBox3": {
         display: "flex",
@@ -198,18 +154,12 @@ const StyledAccordion = styled(Accordion)(({ theme }) => ({
       },
     },
   },
-  "& .MuiButtonBase-root": {
-    // boxShadow: 'none',
-    // padding: '0 8px',
-  },
 }));
 
 const StyledVR = styled(Box)(({ theme }) => ({
   borderBottom: "1px solid rgba(0, 0, 0, 0.3)",
   height: "10px",
 }));
-
-const labels = ["Applicants", "Shortlisted", "Interviews"];
 
 const label = "match";
 
@@ -280,27 +230,6 @@ export default function DraggableCard({
 
     setOpenQandADialog(true);
     !openQandADialog && setAnchorElQandA(event.target);
-  };
-
-  const handleCandidateCV = async () => {
-    try {
-      const { payload } = await dispatch(
-        getCandidateCV({ user_id: item?.user_id })
-      );
-
-      if (payload?.status == "success") {
-        const cvData = payload.data;
-        navigate(`/candidate-cv/${item?.user_id}`, { state: cvData });
-      }
-    } catch (error) {
-      dispatch(
-        setAlert({
-          show: true,
-          type: ALERT_TYPE.ERROR,
-          msg: ERROR_MSG,
-        })
-      );
-    }
   };
 
   const handleReject = () => {
@@ -387,14 +316,9 @@ export default function DraggableCard({
                     className="profileAvatar"
                     alt="crayon logo"
                     src={
-                      item?.profile_url !== "No URL"
+                      item?.profile_url != "No URL"
                         ? item?.profile_url
                         : profile
-                    }
-                    sx={
-                      {
-                        // mr: 1
-                      }
                     }
                   />
                   <Box sx={{ marginLeft: "4px" }}>
@@ -402,19 +326,28 @@ export default function DraggableCard({
                       title={item?.first_name + " " + item?.last_name}
                       placement="top-end"
                     >
-                      <Typography
-                        sx={{
-                          fontWeight: 700,
-                          mr: 1,
-                          fontSize: "14px",
-                          width: "100px",
-                          whiteSpace: "nowrap", // Prevents text from wrapping
-                          overflow: "hidden", // Hides any overflowing content
-                          textOverflow: "ellipsis", // Adds dots at the end of overflowing text
+                      <Link
+                        to={`/candidate-cv/${item?.user_id}`}
+                        target="_blank"
+                        style={{
+                          textDecoration: "none",
+                          color: theme.palette.black,
                         }}
                       >
-                        {item?.first_name + " " + item?.last_name}
-                      </Typography>
+                        <Typography
+                          sx={{
+                            fontWeight: 700,
+                            mr: 1,
+                            fontSize: "14px",
+                            width: "100px",
+                            whiteSpace: "nowrap", // Prevents text from wrapping
+                            overflow: "hidden", // Hides any overflowing content
+                            textOverflow: "ellipsis", // Adds dots at the end of overflowing text
+                          }}
+                        >
+                          {item?.first_name + " " + item?.last_name}
+                        </Typography>
+                      </Link>
                     </Tooltip>
 
                     <Box
@@ -573,41 +506,6 @@ export default function DraggableCard({
                 />
               </Tooltip>
             </Box>
-
-            {/* <IconButton color='yellowButton100' sx={{ justifyContent: 'end', marginRight: '-7px' }}>
-                      <FiberManualRecordIcon sx={{ width: '18px', height: '18px' }} />
-                  </IconButton>
-                  <Box className='summaryBox1'>
-                      <Box
-                          component="img"
-                          className="profileAvatar"
-                          alt="crayon logo"
-                          src={profile}
-                          sx={{
-                              mr: 1
-                          }}
-                      />
-                      <Typography sx={{
-                          fontWeight: 700,
-                          mr: 1
-                      }}>Mickey Mouse, </Typography>
-
-                      <Typography sx={{
-                          fontWeight: 400,
-                      }}>Data Scientist, {item.id}</Typography>
-                  </Box>
-                  <Box className='summaryBox2'>
-
-                      <SmallButton color="orangeButton" borderRadius="5px" label='75%' minWidth='23px'></SmallButton>
-                      <SmallButton color="redButton" borderRadius="25px" label={i18n['draggableCard.cv']} minWidth='23px'></SmallButton>
-                      <SmallButton color="blueButton400" borderRadius="5px" label='8' minWidth='23px'></SmallButton>
-                      <SmallButton color="blueButton400" borderRadius="5px" label='R45,000' minWidth='23px'></SmallButton>
-                      <SmallButton color="blueButton400" borderRadius="5px" label='QL 4' minWidth='23px'></SmallButton>
-                      <SmallButton color="redButton" borderRadius="25px" label={i18n['draggableCard.qAnda']} minWidth='23px'></SmallButton>
-                      <ArrowBackIosIcon color="redButton" className='arrowFont' sx={{ ml: '4px' }} />
-                      <ArrowForwardIosIcon color="lightGreenButton100" className='arrowFont' />
-                      <CloseIcon color="redButton" />
-                  </Box> */}
           </AccordionSummary>
 
           <AccordionDetails>
@@ -705,7 +603,6 @@ export default function DraggableCard({
                   label={i18n["draggableCard.cv"]}
                   mr="4px"
                   borderRadius="25px"
-                  onClick={handleCandidateCV}
                 ></SmallButton>
 
                 <SmallButton

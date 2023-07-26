@@ -40,6 +40,7 @@ export default function MyCV() {
         spacing={0}
         sx={{ pb: 3 }}
         flexDirection={{ xs: "column", sm: "row" }}
+        justifyContent="space-evenly"
       >
         <Grid
           container
@@ -54,10 +55,7 @@ export default function MyCV() {
               onClick={() => handleLeftButtonClick(1)}
               variant={step === 1 ? "contained" : "outlined"}
               color="redButton100"
-              sx={{
-                mb: 2,
-                borderRadius: "0 5px 5px 0"
-              }}
+              sx={{ mb: 2 }}
             >
               {i18n["myCV.basic"]}
             </StyledButtonLeft>
@@ -65,10 +63,7 @@ export default function MyCV() {
               onClick={() => handleLeftButtonClick(2)}
               variant={step === 2 ? "contained" : "outlined"}
               color="redButton100"
-              sx={{
-                mb: 2,
-                borderRadius: "0 5px 5px 0"
-              }}
+              sx={{ mb: 2 }}
             >
               {i18n["myCV.workLife"]}
             </StyledButtonLeft>
@@ -76,16 +71,12 @@ export default function MyCV() {
               onClick={() => handleLeftButtonClick(3)}
               variant={step === 3 ? "contained" : "outlined"}
               color="redButton100"
-              sx={{
-                mb: 2,
-                borderRadius: "0 5px 5px 0"
-              }}
             >
               {i18n["myCV.studyLife"]}
             </StyledButtonLeft>
           </Box>
         </Grid>
-        <Grid xs={12} sm={6} md={8} lg={9} xl={10} px={3}>
+        <Grid xs={12} sm={6} md={8} lg={9} xl={10}>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <Typography
               sx={{
@@ -102,15 +93,14 @@ export default function MyCV() {
           <Box
             sx={{
               boxShadow: 4,
-              px: 3,
-              py: 2,
+              p: 3,
               minHeight: "748px",
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
             }}
           >
-            <Box >
+            <Box>
               {step === 1 && <TheBasics changeStep={handleChangeStep} />}
               {step === 2 && <WorkLife changeStep={handleChangeStep} />}
               {step === 3 && <StudyLife changeStep={handleChangeStep} />}

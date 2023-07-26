@@ -195,8 +195,8 @@ export default function TopBar() {
             setActiveTab("employer/my-jobs");
           } else {
             tabs = AUTHORIZED_TAB_ITEMS_EMPLOYER;
-            navigate("employer/my-profile", { replace: true });
-            setActiveTab("employer/my-profile");
+            navigate("employer/my-jobs", { replace: true });
+            setActiveTab("employer/my-jobs");
           }
         } else {
           if (profileCompletion === 0) {
@@ -205,8 +205,8 @@ export default function TopBar() {
             setActiveTab("candidate/my-jobs");
           } else {
             tabs = AUTHORIZED_TAB_ITEMS_CANDIDATE;
-            navigate("candidate/my-profile", { replace: true });
-            setActiveTab("candidate/my-profile");
+            navigate("candidate/my-jobs", { replace: true });
+            setActiveTab("candidate/my-jobs");
           }
         }
 

@@ -46,10 +46,13 @@ export default function TheDetails({ changeStep }) {
       dispatch(setLoading(true));
       const { payload } = await dispatch(getDetailData(jobId));
       if (payload?.status == "success") {
+        console.log(payload.data);
         const detail = payload?.data;
+        console.log(detail);
         setDetailData({ ...detail, job_id: jobId });
         setErrors([]);
       } else if (payload?.status == "error") {
+        console.log(payload);
         payload?.message?.length > 0 && setErrors(payload?.message);
       } else {
         dispatch(
@@ -75,8 +78,10 @@ export default function TheDetails({ changeStep }) {
 
   const saveDetail = async () => {
     try {
+      console.log("DETAILS DATA", detailData);
       const { payload } = await dispatch(addDetailData(detailData));
       if (payload?.status == "success") {
+        // setLocalStorage('detailData', JSON.stringify(detailData))
         dispatch(
           setAlert({
             show: true,
@@ -117,6 +122,10 @@ export default function TheDetails({ changeStep }) {
       ...detailData,
       [type]: inputText,
     };
+    console.log(inputText);
+    const filteredErrors = errors?.filter((item) => item.key != type);
+    inputText.length > 0 && setErrors(filteredErrors);
+    console.log(newDetailData);
     setDetailData(newDetailData);
   };
 
@@ -145,6 +154,7 @@ export default function TheDetails({ changeStep }) {
         >
           {POST_JOB_STEPS[1]}
         </Typography>
+        {console.log(errors)}
         <Box>
           <TextEditor
             value={detailData?.role_summary}
@@ -152,14 +162,13 @@ export default function TheDetails({ changeStep }) {
             type="role_summary"
             onInputCHange={handleInputChange}
           />
-          {detailData?.role_summary == "" &&
-            errors.find((error) => error.key == "role_summary") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "role_summary").message
-                }`}
-              </Typography>
-            )}
+          {errors.find((error) => error.key == "role_summary") && (
+            <Typography color={"red"}>
+              {`*${
+                errors.find((error) => error.key == "role_summary").message
+              }`}
+            </Typography>
+          )}
         </Box>
         <Box sx={{ mt: 3 }}>
           <TextEditor
@@ -168,15 +177,14 @@ export default function TheDetails({ changeStep }) {
             type="role_responsibilty"
             onInputCHange={handleInputChange}
           />
-          {detailData?.role_responsibilty == "" &&
-            errors.find((error) => error.key == "role_responsibilty") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "role_responsibilty")
-                    .message
-                }`}
-              </Typography>
-            )}
+          {errors.find((error) => error.key == "role_responsibilty") && (
+            <Typography color={"red"}>
+              {`*${
+                errors.find((error) => error.key == "role_responsibilty")
+                  .message
+              }`}
+            </Typography>
+          )}
         </Box>
         <Box sx={{ mt: 3 }}>
           <TextEditor
@@ -185,15 +193,13 @@ export default function TheDetails({ changeStep }) {
             type="role_requirements"
             onInputCHange={handleInputChange}
           />
-          {detailData.role_requirements == "" &&
-            errors.find((error) => error.key == "role_requirements") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "role_requirements")
-                    .message
-                }`}
-              </Typography>
-            )}
+          {errors.find((error) => error.key == "role_requirements") && (
+            <Typography color={"red"}>
+              {`*${
+                errors.find((error) => error.key == "role_requirements").message
+              }`}
+            </Typography>
+          )}
         </Box>
       </Box>
       <Box

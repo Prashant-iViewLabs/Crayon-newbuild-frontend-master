@@ -41,7 +41,9 @@ export default function Jobs() {
   const [filtersJobType, setFiltersJobType] = useState([allJobTypes[0]?.id]);
   const [filtersJobStage, setFiltersJobStage] = useState([allStages[0]?.id]);
   const [filtersType, setFiltersType] = useState([allTypes[0]?.id]);
-  const [filterAllTypes, setFilterAllTypes] = useState(false);
+  const [favourite, setFavourite] = useState(false);
+  const [recent, setRecent] = useState(false);
+  const [appliedjobs, setAppliedjobs] = useState(false);
   const [lastKey, setLastKey] = useState("");
   const [searchedJobs, setSearchedJobs] = useState("");
 
@@ -89,7 +91,11 @@ export default function Jobs() {
       personalityType[0] == 1111 &&
       title == ""
     ) {
-      const { payload } = await dispatch(getAllJobs(lastkeyy));
+      const data = {
+        lastKey: lastkeyy,
+        user_id: token ? decodedToken?.data?.user_id : "",
+      };
+      const { payload } = await dispatch(getAllJobs(data));
       if (payload?.status == "success") {
         setLastKey(payload.data[payload.data.length - 1]?.job_id);
         setAllJobs((prevState) => [...prevState, ...payload.data]);
@@ -103,6 +109,7 @@ export default function Jobs() {
         );
       }
     } else {
+      console.log(favourite, recent, appliedjobs);
       const data = {
         selectedFilters: selectedFilters.toString(),
         lastKey: lastkeyy?.toString(),
@@ -111,7 +118,9 @@ export default function Jobs() {
         personalityType: personalityType.toString(),
         title: title,
         user_id: token ? decodedToken?.data?.user_id : "",
-        favourite: filteralltype == false ? "" : filteralltype,
+        favourites: filteralltype.favourite || "",
+        recentjob: filteralltype.recent || "",
+        appliedjob: filteralltype.appliedJobs || "",
       };
       const { payload } = await dispatch(getFilteredJobs(data));
       if (payload?.status == "success") {
@@ -162,7 +171,7 @@ export default function Jobs() {
       filtersType,
       "",
       searchedJobs,
-      filterAllTypes
+      favourite
     );
   };
   const onChangeFilterJobType = (selectedFilter) => {
@@ -181,7 +190,7 @@ export default function Jobs() {
       filtersType,
       "",
       searchedJobs,
-      filterAllTypes
+      favourite
     );
   };
   const onChangeFilterJobStage = (selectedFilter) => {
@@ -195,7 +204,7 @@ export default function Jobs() {
       filtersType,
       "",
       searchedJobs,
-      filterAllTypes
+      favourite
     );
   };
   const onChangeFilterType = (selectedFilter) => {
@@ -209,15 +218,27 @@ export default function Jobs() {
       selectedFilter,
       "",
       searchedJobs,
-      filterAllTypes
+      favourite
     );
   };
 
-  const onChangeFilterAllTypes = (selectedFilter) => {
+  const onChangefavourite = (selectedFilter) => {
     console.log(selectedFilter);
     setAllJobs([]);
     setLastKey("");
-    setFilterAllTypes(true);
+    // if (selectedFilter[0] == 2) {
+    //   setRecent(true);
+    // } else if (selectedFilter[0] == 3) {
+    //   console.log("hihihi");
+    //   setFavourite(true);
+    // } else if (selectedFilter[0] == 4) {
+    //   setAppliedjobs(true);
+    // }
+    const allTypeFilter = {
+      recent: selectedFilter.includes(2) ? true : "",
+      favourite: selectedFilter.includes(3) ? true : "",
+      appliedJobs: selectedFilter.includes(4) ? true : "",
+    };
     getJobList(
       filters,
       filtersJobType,
@@ -225,7 +246,7 @@ export default function Jobs() {
       filtersType,
       "",
       searchedJobs,
-      true
+      allTypeFilter
     );
   };
 
@@ -243,7 +264,6 @@ export default function Jobs() {
           side="left"
           onChangeFilter={onChangeFilter}
         />
-        
       </Box>
       <Grid xs={12} sm={6} md={8} lg={9} xl={10}>
         <SearchBar
@@ -252,7 +272,7 @@ export default function Jobs() {
           setSearchedJobs={setSearchedJobs}
         />
         <InfiniteScroll
-          key={`${filters} + ${filtersJobType} + ${filtersJobStage} + ${filtersType}+${searchedJobs} +${filterAllTypes}`}
+          key={`${filters} + ${filtersJobType} + ${filtersJobStage} + ${filtersType}+${searchedJobs} +${favourite}`}
           style={{ overflow: "hidden" }}
           dataLength={allJobs.length} //This is important field to render the next data
           next={() =>
@@ -263,7 +283,7 @@ export default function Jobs() {
               filtersType,
               lastKey,
               searchedJobs,
-              filterAllTypes
+              favourite
             )
           }
           hasMore={true} //{allJobs.length <= allJobs[0]?.TotalJobs}
@@ -284,6 +304,7 @@ export default function Jobs() {
               marginTop: "60px",
             }}
           >
+            {console.log(allJobs)}
             {allJobs.length > 0
               ? allJobs?.map((job) => (
                   <Grid xl={3} lg={4} md={6} xs={12} key={job.job_id}>
@@ -341,7 +362,7 @@ export default function Jobs() {
         />
         <ButtonPanel
           panelData={JOBS_RIGHT_STAGES_BUTTON_GROUP}
-          onChangeFilter={onChangeFilterAllTypes}
+          onChangeFilter={onChangefavourite}
           side="right"
         />
         <ButtonPanel

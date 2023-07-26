@@ -4,17 +4,12 @@ import job_volume from "../../../assets/job_volume.svg";
 import job_star from "../../../assets/job_star.svg";
 import job_star_selected from "../../../assets/job_star_selected.svg";
 import job_exp from "../../../assets/job_exp.png";
-import job_apply from "../../../assets/job_apply.svg";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Unstable_Grid2";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SingleRadialChart from "../../common/SingleRadialChart";
 import SmallButton from "../../common/SmallButton";
 import CustomCard from "../../common/CustomCard";
@@ -23,25 +18,19 @@ import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import ButtonMenu from "./ButtonMenu";
 import TextWrapper from "../../common/TextWrapper";
-import CustomDialog from "../../common/CustomDialog";
-import ManageJob from "./ManageJob";
 import { convertDatetimeAgo } from "../../../utils/DateTime";
 import { Tooltip } from "@mui/material";
 import ManageButtonMenu from "./ManageButtonMenu";
-
-import DOMPurify from 'dompurify';
+import { Link } from "react-router-dom";
+import DOMPurify from "dompurify";
 
 const label1 = "applicants";
 const label2 = "shortlisted";
 const label3 = "interviews";
 
-export default function MyJobsCard({ index, job, showManageJob }) {
+export default function MyJobsCard({ index, job }) {
   const i18n = locale.en;
   const theme = useTheme();
-  const [colorKey, setColorKey] = useState("color");
-  const [chartData1, setChartData1] = useState([11]);
-  const [chartData2, setChartData2] = useState([78]);
-  const [chartData3, setChartData3] = useState([30]);
   const [isHovered, setIsHovered] = useState(false);
   const [isStar, setIsStarSelected] = useState(false);
 
@@ -57,6 +46,12 @@ export default function MyJobsCard({ index, job, showManageJob }) {
     ...(job?.traits || []),
   ]);
 
+  function createMarkup(html) {
+    return {
+      __html: DOMPurify.sanitize(html),
+    };
+  }
+
   const handleRightClick = () => {
     setArrSlider2([...arrSlider2.slice(1), ...arrSlider2.slice(0, 1)]);
   };
@@ -67,27 +62,9 @@ export default function MyJobsCard({ index, job, showManageJob }) {
     ]);
   };
 
-  // const showManageJob = () => {
-  //   setOpenManageJobDialog(true);
-  // };
-  // const onHandleClose = () => {
-  //   setOpenManageJobDialog(false);
-  // };
-  const handleHoverEnter = () => {
-    setColorKey("hover");
-  };
-  const handleHoverLeave = () => {
-    setColorKey("color");
-  };
   const handleStar = () => {
     setIsStarSelected(!isStar);
   };
-
-  function createMarkup(html) {
-    return {
-      __html: DOMPurify.sanitize(html)
-    }
-  }
   return (
     <CustomCard
       handleMouseEnter={() => setIsHovered(true)}
@@ -180,22 +157,6 @@ export default function MyJobsCard({ index, job, showManageJob }) {
           )}
         </Box>
       </Grid>
-      {/* <Grid container padding={0} justifyContent="space-between" alignItems="center">
-                <Box sx={{ margin: '-20px 0 -14px -16px', }}>
-                    <RadialChart labelsData={labels} series={chartData} width={250} index={index} isHovered={isHovered} />
-                </Box>
-                <Box sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    marginRight: '8px'
-                }} onMouseEnter={handleHoverEnter}
-                    onMouseLeave={handleHoverLeave}>
-                    {CARD_RIGHT_BUTTON_GROUP.map((btn, index) => (
-                        <SmallButton color={btn[colorKey]} key={index} label={btn.label} borderTopRightRadius={0}
-                            borderBottomRightRadius={0} mb='4px' width={100} p={0} />
-                    ))}
-                </Box>
-            </Grid> */}
       <Grid marginLeft={1} marginRight={1}>
         <Typography
           sx={{
@@ -216,20 +177,29 @@ export default function MyJobsCard({ index, job, showManageJob }) {
           title={job?.title}
           placement="top"
         >
-          <Typography
-            sx={{
-              // minHeight: "60px",
-              fontWeight: 700,
-              fontSize: 20,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 1,
+          <Link
+            to={`/job-detail/${job?.job_id}`}
+            target={"_blank"}
+            style={{
+              textDecoration: "none",
+              color: theme.palette.black,
             }}
-            gutterBottom
           >
-            {job?.title.slice(0, 30)}
-          </Typography>
+            <Typography
+              sx={{
+                // minHeight: "60px",
+                fontWeight: 700,
+                fontSize: 20,
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+              }}
+              gutterBottom
+            >
+              {job?.title.slice(0, 30)}
+            </Typography>
+          </Link>
         </Tooltip>
 
         <Typography
@@ -291,18 +261,18 @@ export default function MyJobsCard({ index, job, showManageJob }) {
         <Box
           sx={
             job?.industry?.length <= 1 &&
-              job?.type !== "" &&
-              job?.work_setup !== ""
+            job?.type != "" &&
+            job?.work_setup != ""
               ? {
-                width: "100%",
-                display: "flex",
-                overflow: "hidden",
-              }
+                  width: "100%",
+                  display: "flex",
+                  overflow: "hidden",
+                }
               : {
-                width: "100%",
-                display: "flex",
-                overflow: "hidden",
-              }
+                  width: "100%",
+                  display: "flex",
+                  overflow: "hidden",
+                }
           }
         >
           {arrSlider
@@ -333,7 +303,7 @@ export default function MyJobsCard({ index, job, showManageJob }) {
           mb={1}
           color={theme.palette.black100}
           letterSpacing="0.25px"
-          height={"60px"}
+          // height={"60px"}
         >
           <Box
             mt="12px"
@@ -343,8 +313,8 @@ export default function MyJobsCard({ index, job, showManageJob }) {
             className="preview"
             m={0}
             p={0}
-            dangerouslySetInnerHTML={createMarkup(job?.description)}>
-          </Box>
+            dangerouslySetInnerHTML={createMarkup(job?.description)}
+          ></Box>
         </TextWrapper>
       </Grid>
 
@@ -379,17 +349,17 @@ export default function MyJobsCard({ index, job, showManageJob }) {
         <Box
           sx={
             job?.traits?.length <= 1 &&
-              job?.primaryName !== "" &&
-              job?.shadowName !== ""
+            job?.primaryName != "" &&
+            job?.shadowName != ""
               ? {
-                width: "65%",
-                display: "flex",
-              }
+                  width: "65%",
+                  display: "flex",
+                }
               : {
-                width: "65%",
-                display: "flex",
-                overflow: "hidden",
-              }
+                  width: "65%",
+                  display: "flex",
+                  overflow: "hidden",
+                }
           }
         >
           {arrSlider2
@@ -402,7 +372,13 @@ export default function MyJobsCard({ index, job, showManageJob }) {
               ) {
                 return (
                   <SmallButton
-                    color={item?.trait_name ? "grayButton200" : "purpleButton"}
+                    color={
+                      item?.trait_name
+                        ? "grayButton200"
+                        : index == 1
+                        ? "brownButton"
+                        : "purpleButton"
+                    }
                     height={25}
                     label={item?.trait_name ? item?.trait_name : item}
                     mr="4px"
@@ -472,48 +448,29 @@ export default function MyJobsCard({ index, job, showManageJob }) {
         display="flex"
         padding="0 18px 8px 18px"
         justifyContent="space-between"
-      // alignItems="center"
       >
-        {/* <Box
-          sx={{
-            height: 43,
-            width: 43,
-            maxHeight: { xs: 43 },
-            maxWidth: { xs: 43 },
-            borderRadius: "6px",
-            background: theme.palette.chart.yellow,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Box
-            component="img"
-            sx={{
-              height: 25,
-              width: 25,
-              maxHeight: { xs: 25 },
-              maxWidth: { xs: 25 },
-            }}
-            alt="job_apply"
-            src={job_apply}
-          />
-        </Box> */}
-        {/* <Grid sx={{ width: "50%", padding: 0, ml: 1 }}> */}
         <Box sx={{ width: "66%", paddingRight: "10px" }}>
-          <Button
-            sx={{
-              boxShadow: 0,
-              fontSize: "12px",
-              width: "100%",
-              height: "43px",
+          <Link
+            to={`/employer/manage-talent/${job?.job_id}`}
+            target="_blank"
+            style={{
+              textDecoration: "none",
             }}
-            variant="contained"
-            color="redButton100"
-            onClick={() => showManageJob()}
           >
-            {i18n["manageJob.talentBtn"]}
-          </Button>
+            <Button
+              sx={{
+                boxShadow: 0,
+                fontSize: "12px",
+                width: "100%",
+                height: "43px",
+              }}
+              variant="contained"
+              color="redButton100"
+              // onClick={() => showManageJob()}
+            >
+              {i18n["manageJob.talentBtn"]}
+            </Button>
+          </Link>
         </Box>
 
         <Box sx={{ width: "30%" }}>

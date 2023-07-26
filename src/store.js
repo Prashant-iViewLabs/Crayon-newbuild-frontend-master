@@ -4,6 +4,7 @@ import loginReducer from "./redux/login/loginSlice";
 import myCVReducer from "./redux/candidate/myCvSlice";
 import handleSignReducer from "./redux/signUp/reducer";
 import allGuestJobs from "./redux/guest/jobsSlice";
+import talentTypes from "./redux/guest/talentTypes";
 import jobTypeReducer from "./redux/jobRole";
 import allStages from "./redux/stages";
 import jobStatus from "./redux/status";
@@ -24,6 +25,7 @@ export const store = configureStore({
     myCv: myCVReducer,
     sign: handleSignReducer,
     jobtype: jobTypeReducer,
+    talenttype: talentTypes,
     configstages: allStages,
     configjobstatus: jobStatus,
     configAllTypes: allTypes,
@@ -35,6 +37,6 @@ export const store = configureStore({
     configmycvnew: myCVNew,
     configMyStatus: myStatus,
     myProfile: empProfileSlice,
-    postJobs:postJobSlice
+    postJobs: postJobSlice,
   },
 });

@@ -35,6 +35,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Menu from "@mui/material/Menu";
 import Fade from "@mui/material/Fade";
 import TrackButton from "./TrackButton";
+import { Link } from "react-router-dom";
 
 const label1 = "applicants";
 const label2 = "shortlisted";
@@ -262,20 +263,29 @@ export default function MyJobsCard({ index, job, getJobs }) {
           title={job?.title}
           placement="top"
         >
-          <Typography
-            sx={{
-              // minHeight: "60px",
-              fontWeight: 700,
-              fontSize: 20,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 1,
+          <Link
+            to={`/job-detail/${job?.job_id}`}
+            target={"_blank"}
+            style={{
+              textDecoration: "none",
+              color: theme.palette.black,
             }}
-            gutterBottom
           >
-            {job?.title.slice(0, 30)}
-          </Typography>
+            <Typography
+              sx={{
+                // minHeight: "60px",
+                fontWeight: 700,
+                fontSize: 20,
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+              }}
+              gutterBottom
+            >
+              {job?.title.slice(0, 30)}
+            </Typography>
+          </Link>
         </Tooltip>
 
         <Typography
@@ -438,7 +448,13 @@ export default function MyJobsCard({ index, job, getJobs }) {
               if (item !== undefined) {
                 return (
                   <SmallButton
-                    color={item?.trait?.name ? "grayButton200" : "purpleButton"}
+                    color={
+                      item?.trait?.name
+                        ? "grayButton200"
+                        : index == 1
+                        ? "brownButton"
+                        : "purpleButton"
+                    }
                     height={25}
                     label={item?.trait ? item?.trait?.name : item}
                     mr="4px"

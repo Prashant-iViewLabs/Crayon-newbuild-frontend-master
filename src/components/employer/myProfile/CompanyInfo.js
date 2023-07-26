@@ -22,18 +22,21 @@ const PROFILE = {
   industry_ids: [],
 };
 
+// const WORD_LIMIT = 30;
+
 export default function Info({
   handleCompanyInfoData,
   profile2,
   errors,
-  setErrors,
+  companies,
+  industries,
 }) {
   const i18n = locale.en;
   const theme = useTheme();
   const dispatch = useDispatch();
   const [profileData, setProfileData] = useState(profile2);
-  const [industries, setIndustries] = useState([]);
-  const [companies, setCompanies] = useState([]);
+
+  // const [wordLimitExceed, setWordLimitExceed] = useState(false);
 
   useEffect(() => {
     handleCompanyInfoData(profile2);
@@ -86,30 +89,6 @@ export default function Info({
     setProfileData(newProfileData);
     handleCompanyInfoData(newProfileData);
   };
-  const getAllData = async () => {
-    try {
-      dispatch(setLoading(true));
-      const industry = await dispatch(getIndustries());
-      setIndustries(industry.payload.data);
-      const company = await dispatch(getCompanies());
-      setCompanies(company.payload.data);
-      // setIndustries(addId(industry.payload.data, 'industry_id', 'name'))
-      dispatch(setLoading(false));
-    } catch (error) {
-      dispatch(setLoading(false));
-      dispatch(
-        setAlert({
-          show: true,
-          type: ALERT_TYPE.ERROR,
-          msg: ERROR_MSG,
-        })
-      );
-    }
-  };
-
-  useEffect(() => {
-    getAllData();
-  }, []);
 
   return (
     <Box>
@@ -120,6 +99,8 @@ export default function Info({
           </Typography>
           {/* <InputBox placeholder={i18n['empMyProfile.companyNamePlace']} value={profileData.name} id='name' onChange={handleInputChange} /> */}
           <AutoComplete
+            showAddOption={true}
+            allowCustomInput={true}
             id="company_name"
             // value={getCompValue()}
             value={

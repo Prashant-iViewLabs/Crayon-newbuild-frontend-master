@@ -16,22 +16,23 @@ import AllTalent from './components/admin/adminTalent/AllTalent';
 import Admin from './components/admin/index';
 import MyJobsCandidate from './components/candidate/myJobs/MyJobs';
 import MyCV from './components/candidate/myCV/MyCV';
-import MyCVNew from './components/candidate/myCVNew/MyCVNew';
+
 import ComingSoon from './components/common/ComingSoon';
-import Solutions from './components/guest/solutions/Solutions';
+
 import Candidate from './components/candidate';
 import Employer from './components/employer';
+
 import PostAJob from './components/employer/postAJob/PostAJob';
-import PostAJobNew from './components/employer/postAJobNew/PostAJobNew';
 import MyProfileCan from './components/candidate/myProfile/MyProfile';
 import MyProfileEmp from './components/employer/myProfile/MyProfile';
 import PrivateRoute from './components/route/PrivateRoute';
-import PublicRoute from './components/route/PublicRoute';
+
 import PendingJobs from './components/admin/adminJobs/pendingJobs/PendingJobs';
 import PausedJobs from './components/admin/adminJobs/pausedJobs/PausedJobs';
 import ClosedJobs from './components/admin/adminJobs/closedJobs/ClosedJobs';
 import CandidateCVPage from './components/candidate/cvPage/CandidateCVPage';
 import JobsDetailPage from './components/guest/jobs/JobsDetailPage';
+import ManageJob from './components/employer/myJobs/ManageJob';
 
 export default function App() {
   return (
@@ -44,15 +45,14 @@ export default function App() {
 
         <Route exact path='employer' element={<PrivateRoute><Employer /></PrivateRoute>} >
           <Route path='my-jobs' element={<PrivateRoute><MyJobs /></PrivateRoute>} />
-          {/* <Route path='post-a-job' element={<PrivateRoute><PostAJob /></PrivateRoute>} /> */}
-          <Route path='post-a-job/:jobId?' element={<PrivateRoute><PostAJobNew /></PrivateRoute>} />
+          <Route path='post-a-job/:jobId?' element={<PrivateRoute><PostAJob /></PrivateRoute>} />
           <Route path='my-profile' element={<PrivateRoute><MyProfileEmp /></PrivateRoute>} />
+          <Route path='manage-talent/:jobId' element={<PrivateRoute><ManageJob /></PrivateRoute>} />
         </Route>
 
         <Route exact path='candidate' element={<PrivateRoute><Candidate /></PrivateRoute>} >
           <Route path='my-jobs' element={<PrivateRoute><MyJobsCandidate /></PrivateRoute>} />
-          {/* <Route path='my-cv' element={<PrivateRoute><MyCV /></PrivateRoute>} /> */}
-          <Route path='my-cv' element={<PrivateRoute><MyCVNew /></PrivateRoute>} />
+          <Route path='my-cv' element={<PrivateRoute><MyCV /></PrivateRoute>} />
           <Route path='my-profile' element={<PrivateRoute><MyProfileCan /></PrivateRoute>} />
         </Route>
 

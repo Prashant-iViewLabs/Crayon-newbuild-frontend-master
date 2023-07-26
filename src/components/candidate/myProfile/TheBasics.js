@@ -648,7 +648,7 @@ export default function TheBasics({
           </Typography>
           <ToggleSwitch
             id="relocate"
-            checked={!!profileData.relocate}
+            checked={!!Number(profileData.relocate)}
             onChange={handleSwitch}
           />
           {!profileData.relocate &&

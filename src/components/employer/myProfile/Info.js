@@ -55,6 +55,14 @@ export default function Info({ handleInfoData, profile, errors, setErrors }) {
         dispatch(getCountry()),
         dispatch(getTown()),
       ]);
+
+      if (profile?.region_id != null) {
+        let temp = town.payload.data.filter((val) => {
+          return val.region_id == profile?.region_id;
+        });
+        setTownsMain(temp);
+      }
+
       setCountries(addId(country.payload.data, "region_id", "name"));
       setTowns(addId(town.payload.data, "town_id", "name"));
 

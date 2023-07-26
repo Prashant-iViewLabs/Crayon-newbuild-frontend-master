@@ -9,12 +9,14 @@ const initialState = {
 };
 export const getAllJobs = createAsyncThunk(
   "getAllJobs",
-  async (payload, { dispatch }) => {
+  async ({ lastKey, user_id }, { dispatch }) => {
     dispatch(setLoading(true));
     const { data } = await getApi(
       "/getjobslist/filter?industry_id=&lastKey=" +
-        payload +
-        "&jobtype_id=&jobstage_id=&personalitytype_id=&title=&user_id=&favourite="
+        lastKey +
+        "&jobtype_id=&jobstage_id=&personalitytype_id=&title=&user_id=" +
+        user_id +
+        "&favourite=&appliedjobs=&recent="
     );
     dispatch(setLoading(false));
     return data;
@@ -32,7 +34,9 @@ export const getFilteredJobs = createAsyncThunk(
       personalityType,
       title,
       user_id,
-      favourite,
+      favourites,
+      recentjob,
+      appliedjob,
     },
     { dispatch }
   ) => {
@@ -65,7 +69,11 @@ export const getFilteredJobs = createAsyncThunk(
         "&user_id=" +
         user_id +
         "&favourite=" +
-        favourite
+        favourites +
+        "&appliedjobs=" +
+        appliedjob +
+        "&recent=" +
+        recentjob
     );
     dispatch(setLoading(false));
     console.log("PAYLOAD DATA", data);

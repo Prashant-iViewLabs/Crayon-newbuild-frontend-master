@@ -219,6 +219,7 @@ const ManageButtonMenu = ({ job }) => {
   };
   const duplicateJob = async () => {
     try {
+      console.log(duplicateJobData);
       const { payload } = await dispatch(duplicateThejob(duplicateJobData));
       if (payload?.status == "success") {
         dispatch(
@@ -228,7 +229,8 @@ const ManageButtonMenu = ({ job }) => {
             msg: "Job Duplicated successfully!",
           })
         );
-        history(`/employer/post-a-job/${job?.job_id}`);
+        console.log(payload.data[0].job_id);
+        history(`/employer/post-a-job/${payload.data[0]?.job_id}`);
         handleClose2();
       } else {
         dispatch(

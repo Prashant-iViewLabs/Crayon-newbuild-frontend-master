@@ -1,12 +1,13 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
 import Paper from "@mui/material/Paper";
 import { Editor } from "react-draft-wysiwyg";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditorState, ContentState, convertFromHTML } from "draft-js";
-import { convertToHTML } from 'draft-convert';
-import DOMPurify from 'dompurify';
+import htmlToDraft from "html-to-draftjs";
+// import draftToHtml from 'draftjs-to-html'
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   borderRadius: "25px",
@@ -46,140 +47,34 @@ const toolBarOptions = {
   },
 };
 
-const getRGBValues = (text) => {
-  const rgbValues = text.match(/\((.*?)\)/)[1].split(',');
-  const color = `rgb(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]})`;
-  return color
-}
-const styleToHTML = (style) => {
-  if (style === 'BOLD') {
-    return <strong />;
-  }
-  if (style === 'ITALIC') {
-    return <em />;
-  }
-  if (style === 'UNDERLINE') {
-    return <u />;
-  }
-  if (style === 'STRIKETHROUGH') {
-    return <del />
-  }
-  if (style.includes('bgcolor-rgb')) {
-    let bgcolor = getRGBValues(style)
-    return <span style={{ background: bgcolor }} />;
-  }
-  if (style.includes('color-rgb')) {
-    let color = getRGBValues(style)
-    return <span style={{ color }} />;
-  }
-  return undefined;
-};
-
-const blockToHTML = (block) => {
-  const textAlign = block.data && block.data['text-align'];
-
-  const TagName = block.type === 'unordered-list-item'
-    ? 'ul'
-    : block.type === 'ordered-list-item'
-      ? 'ol'
-      : 'p';
-  if (textAlign) {
-    if (block.type === 'unstyled') {
-      return <p style={{ textAlign }} />;
-    }
-    return (
-      <TagName>
-        <li style={{ textAlign }}>{block.text}</li>
-      </TagName>)
-  }
-};
-
-const entityToHTML = (entity, originalText) => {
-  if (entity.type === "LINK") {
-    return (
-      <a
-        href={entity.data["url"]}
-        target={entity.data["targetOption"]}
-        rel="noopener noreferrer"
-      >
-        {originalText}
-      </a>
-    );
-  }
-
-  return originalText;
-};
-const options = {
-  blockToHTML,
-  styleToHTML,
-  entityToHTML,
-};
-
 export default function TextEditor({ value, type, title, onInputCHange }) {
+  const i18n = locale.en;
 
-  // const [editorState, setEditorState] = useState(() => {
-  //   return EditorState.createEmpty()
-
-  // })
-  // const [initialValue, setInitialValue] = useState(value);
-  // const [convertedContent, setConvertedContent] = useState(null);
-  // useEffect(() => {
-  //   if (value && value !== initialValue) {
-  //     const blocksFromHTML = convertFromHTML(value);
-  //     const content = ContentState.createFromBlockArray(
-  //       blocksFromHTML?.contentBlocks,
-  //       blocksFromHTML?.entityMap
-  //     );
-  //     setEditorState(EditorState.createWithContent(content));
-  //     setInitialValue(value);
-  //   }
-  // }, [value, initialValue]);
-
-  // console.log(value);
-  // const onEditorStateChange = (text) => {
-  //   setEditorState(text);
-  //   console.log(text);
-  // };
-  // useEffect(() => {
-  //   let html = convertToHTML(options)(editorState.getCurrentContent());
-  //   onInputCHange(html, type)
-  //   setConvertedContent(html);
-
-  // }, [editorState]);
-
-  const editorRef = useRef(null);
-  const [editorState, setEditorState] = useState(() => {
+  const getInitialState = (value) => {
     if (value) {
-      const blocksFromHTML = convertFromHTML(value);
-      const content = ContentState.createFromBlockArray(
-        blocksFromHTML?.contentBlocks,
-        blocksFromHTML?.entityMap
+      const blocksFromHtml = htmlToDraft(value);
+      const { contentBlocks, entityMap } = blocksFromHtml;
+      const contentState = ContentState.createFromBlockArray(
+        contentBlocks,
+        entityMap
       );
-      return EditorState.createWithContent(content);
+      return EditorState.createWithContent(contentState);
+    } else {
+      return EditorState.createEmpty();
     }
-    return EditorState.createEmpty();
-  });
-  const [convertedContent, setConvertedContent] = useState("");
+  };
 
-  const onEditorStateChange = (editorState) => {
-    setEditorState(editorState);
-    const html = convertToHTML(options)(editorState.getCurrentContent());
-    setConvertedContent(html);
-    onInputCHange(html, type);
+  const [editorState, setEditorState] = useState(getInitialState(value));
+
+  const onEditorStateChange = (text) => {
+    const value = text.getCurrentContent().getPlainText();
+    onInputCHange(value, type);
+    setEditorState(text);
   };
 
   useEffect(() => {
-    // This effect will update the initial value on component mount
-    if ((value && !convertedContent) || value !== convertedContent) {
-      const blocksFromHTML = convertFromHTML(value);
-      const content = ContentState.createFromBlockArray(
-        blocksFromHTML?.contentBlocks,
-        blocksFromHTML?.entityMap
-      );
-      setEditorState(EditorState.createWithContent(content));
-      setConvertedContent(value);
-    }
-  }, [value, convertedContent]);
+    setEditorState(getInitialState(value));
+  }, [value]);
 
   return (
     <StyledPaper>
@@ -192,12 +87,12 @@ export default function TextEditor({ value, type, title, onInputCHange }) {
         {title}
       </Typography>
       <Editor
-        // editorState={editorState}
+        // wrapperClassName="demo-wrapper"
+        // editorClassName="demo-editor"
+        toolbarClassName="toolbar-class"
         editorState={editorState}
         onEditorStateChange={onEditorStateChange}
-        placeholder="Write here..."
         toolbar={toolBarOptions}
-        ref={editorRef}
       />
     </StyledPaper>
   );

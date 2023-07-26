@@ -3,20 +3,20 @@ import { useDispatch } from "react-redux";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Slider from "@mui/material/Slider"
 import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
 import { uploadProfilePic } from "../../../redux/candidate/myProfileSlice";
-import { setAlert } from "../../../redux/configSlice";
-import { ALERT_TYPE, EMP_PROFILE_STEPS } from "../../../utils/Constants";
+import { setAlert, setLoading } from "../../../redux/configSlice";
+import {
+  ALERT_TYPE,
+  EMP_PROFILE_STEPS,
+  ERROR_MSG,
+} from "../../../utils/Constants";
 import CheckSharpIcon from "@mui/icons-material/CheckSharp";
 import { useTheme } from "@emotion/react";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import getCroppedImg from "../../../utils/cropImage";
-
-import ZoomOutIcon from '@mui/icons-material/Remove';
-import ZoomInIcon from '@mui/icons-material/Add';
 import LinearProgress, {
   linearProgressClasses,
 } from "@mui/material/LinearProgress";
@@ -30,10 +30,15 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Info from "./Info";
 import CompanyInfo from "./CompanyInfo";
+import ZoomOutIcon from "@mui/icons-material/Remove";
+import ZoomInIcon from "@mui/icons-material/Add";
+import Slider from "@mui/material/Slider";
 import {
   createInfo,
   createCompInfo,
   getEmpProfile,
+  getIndustries,
+  getCompanies,
 } from "../../../redux/employer/empProfileSlice";
 import CustomDialog from "../../common/CustomDialog";
 import Cropper from "react-easy-crop";
@@ -188,6 +193,46 @@ export default function ProfileCard() {
   const [color, setColor] = useState("");
   const [displayD, setDisplayD] = useState("none");
   const [errors, setErrors] = useState([]);
+  const [industries, setIndustries] = useState([]);
+  const [companies, setCompanies] = useState([]);
+
+  const handleZoom = (direction) => {
+    const step = 0.5;
+    let newZoom = zoom;
+
+    if (direction === "+") {
+      newZoom = Math.min(zoom + step, 3); // Limit zoom to maximum 3x
+    } else if (direction === "-") {
+      newZoom = Math.max(zoom - step, 1); // Limit zoom to minimum 1x
+    }
+
+    setZoom(newZoom);
+  };
+
+  const getAllData = async () => {
+    try {
+      dispatch(setLoading(true));
+      const industry = await dispatch(getIndustries());
+      setIndustries(industry.payload.data);
+      const company = await dispatch(getCompanies());
+      setCompanies(company.payload.data);
+      // setIndustries(addId(industry.payload.data, 'industry_id', 'name'))
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispatch(setLoading(false));
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
+
+  useEffect(() => {
+    getAllData();
+  }, []);
 
   const handleImageClick = (e) => {
     setImagePreview(null);
@@ -276,7 +321,6 @@ export default function ProfileCard() {
   const getAllEmpData = async () => {
     try {
       const { payload } = await dispatch(getEmpProfile());
-      console.log(payload);
       if (payload?.status == "success") {
         if (typeof payload.data == "string") {
           setCompInfo({});
@@ -518,20 +562,6 @@ export default function ProfileCard() {
       document.body.removeEventListener("click", handleClickOutside);
     };
   }, []);
-
-
-  const handleZoom = (direction) => {
-    const step = 0.5;
-    let newZoom = zoom;
-
-    if (direction === "+") {
-      newZoom = Math.min(zoom + step, 3); // Limit zoom to maximum 3x
-    } else if (direction === "-") {
-      newZoom = Math.max(zoom - step, 1); // Limit zoom to minimum 1x
-    }
-
-    setZoom(newZoom);
-  };
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Box sx={{ display: "flex", flexDirection: "column", width: "15%" }}>
@@ -719,7 +749,11 @@ export default function ProfileCard() {
                     component="img"
                     className="companyLogo"
                     alt="crayon logo"
-                    src={image?.length > 0 ? image : companyLogo}
+                    src={
+                      image?.length > 0
+                        ? image || compInfo?.profile_url
+                        : companyLogo
+                    }
                     sx={{
                       height: "73px",
                       width: "73px",
@@ -734,7 +768,9 @@ export default function ProfileCard() {
                         mr: 1,
                       }}
                     >
-                      {compInfo?.company_name}
+                      {companies?.find(
+                        (title) => title.company_id === compInfo?.company_name
+                      )?.name || compInfo?.company_name}
                     </Typography>
                     <Typography
                       sx={{
@@ -824,6 +860,8 @@ export default function ProfileCard() {
                 handleCompanyInfoData={getCompanyInfoData}
                 errors={errors}
                 setErrors={setErrors}
+                companies={companies}
+                industries={industries}
               />
 
               <Box
@@ -904,18 +942,25 @@ export default function ProfileCard() {
                 onCropComplete={onCropComplete}
               />
             </Box>
-            <Box sx={{
-              position: "relative",
-              height: "20%",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center"
-            }}>
-              <Button variant="text" onClick={() => handleZoom("-")}><ZoomOutIcon /></Button>
-              <Box className="controls" sx={{
-                width: 200,
-                mx: 3
-              }} >
+            <Box
+              sx={{
+                position: "relative",
+                height: "20%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Button variant="text" onClick={() => handleZoom("-")}>
+                <ZoomOutIcon />
+              </Button>
+              <Box
+                className="controls"
+                sx={{
+                  width: 200,
+                  mx: 3,
+                }}
+              >
                 <Slider
                   defaultValue={0}
                   size="small"
@@ -925,14 +970,17 @@ export default function ProfileCard() {
                   step={0.5}
                   aria-labelledby="Zoom"
                   onChange={(e) => {
-                    setZoom(e.target.value)
+                    setZoom(e.target.value);
                   }}
                   className="zoom-range"
                 />
-
               </Box>
-              <Button variant="text" onClick={() => handleZoom("+")}><ZoomInIcon /></Button>
-              <Button variant="text" onClick={() => setZoom(1)}>Reset</Button>
+              <Button variant="text" onClick={() => handleZoom("+")}>
+                <ZoomInIcon />
+              </Button>
+              <Button variant="text" onClick={() => setZoom(1)}>
+                Reset
+              </Button>
             </Box>
           </CustomDialog>
         </StyledAccordion>

@@ -207,7 +207,7 @@ export default function WorkLife({ changeStep }) {
   }, []);
 
   return (
-    <Box>
+    <Box sx={{ pl: 3 }}>
       <Box sx={{ display: "flex", alignItems: "baseline" }}>
         <Box>
           <Typography
@@ -328,7 +328,7 @@ export default function WorkLife({ changeStep }) {
                 <AutoComplete
                   disabled={noWorkExp}
                   id="company_name"
-                  sx={{ width: "94%" }}
+                  sx={{ width: "94%", mb: 3 }}
                   // value={getCompValue()}
                   value={
                     companies?.find(
@@ -378,7 +378,7 @@ export default function WorkLife({ changeStep }) {
                 <AutoComplete
                   disabled={noWorkExp}
                   id="title"
-                  sx={{ width: "94%" }}
+                  sx={{ width: "94%", mb: 3 }}
                   // value={getCompValue()}
                   value={
                     titles?.find((item) => item.name == work?.title) ||

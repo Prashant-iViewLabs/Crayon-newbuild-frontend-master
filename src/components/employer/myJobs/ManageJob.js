@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
@@ -6,34 +6,24 @@ import DraggableCard from "./DraggableCard";
 import {
   changeJobApplicationStatus,
   getTalentJobStatusApplications,
+  getTalentJobStatusCount,
 } from "../../../redux/employer/myJobsSlice";
 import { useDispatch } from "react-redux";
 import {
   setAlert,
   setLoading,
 } from "../../../redux/employer/employerJobsConfigSlice";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { ALERT_TYPE, ERROR_MSG } from "../../../utils/Constants";
-import { KeyboardArrowUp, KeyboardArrowUpOutlined } from "@mui/icons-material";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { Button, MenuList, Typography } from "@mui/material";
-import salary from "../../../assets/salary.svg";
-import experience from "../../../assets/experience.svg";
-import qualification from "../../../assets/qualification.svg";
-import personality from "../../../assets/personality.svg";
-import SelectMultiple from "../../common/SelectMultiple";
-import sortLogo from "../../../assets/sort_logo.svg";
-import Menu from "@mui/material/Menu";
-import Fade from "@mui/material/Fade";
 import SortButton from "./SortButton";
+import { useParams } from "react-router-dom";
 
 const StyledBox = (props) => {
-  const { children, color, jobId, column } = props;
+  const { children, color } = props;
   const theme = useTheme();
   return (
     <Box
       sx={{
-        // width: 1,
         height: 37,
         backgroundColor: theme.palette[color].main,
         borderRadius: "0 0 20px 20px",
@@ -121,25 +111,88 @@ export const columnsFromBackend = {
   },
 };
 
-export default function ManageJob({ jobId, talents, setTalents }) {
-  const theme = useTheme();
+export default function ManageJob() {
   const dispatch = useDispatch();
   const [isSort, setIsSort] = useState(false);
+  const { jobId } = useParams();
 
-  const sortingOptions = [
-    "A to Z",
-    "Lowest Salary",
-    "Highest Salary",
-    "Lowest QL",
-    "Highest Ql",
-  ];
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  const [talents, setTalents] = useState([]);
+
+  const getTalentStatusApplications = async (
+    jobId,
+    jobStatusId,
+    manageStatus
+  ) => {
+    try {
+      const [manage] = await Promise.all([
+        dispatch(
+          getTalentJobStatusApplications({
+            job_id: jobId,
+            job_status_id: jobStatusId,
+          })
+        ),
+      ]);
+      // lastkey += 1;
+      setTalents((prevTalents) => {
+        const updatedTalents = manageStatus?.map((item) => {
+          if (item.id === jobStatusId) {
+            return {
+              ...item,
+              items: manage?.payload?.data,
+            };
+          } else {
+            const existingItem = prevTalents.find(
+              (prevItem) => prevItem.id === item.id
+            );
+            return { ...item, items: existingItem ? existingItem.items : [] };
+          }
+        });
+        return [...updatedTalents];
+      });
+    } catch (error) {
+      dispatch(setLoading(false));
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
   };
-  const handleClose = () => {
-    setAnchorEl(null);
+
+  const getTalentMyJobStatusCount = async (jobId) => {
+    try {
+      const [manage] = await Promise.all([
+        dispatch(getTalentJobStatusCount({ job_id: jobId })),
+      ]);
+      console.log(manage.payload.data);
+      manage.payload.data.map((item) => {
+        item.count > 0
+          ? getTalentStatusApplications(jobId, item.id, manage.payload.data)
+          : setTalents((prevTalents) => {
+              const updatedTalents = manage.payload.data?.map((item) => {
+                const existingItem = prevTalents.find(
+                  (prevItem) => prevItem.id === item.id
+                );
+                return {
+                  ...item,
+                  items: existingItem ? existingItem.items : [],
+                };
+              });
+              return [...updatedTalents];
+            });
+      });
+    } catch (error) {
+      dispatch(setLoading(false));
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
   };
 
   const handleMoveJobApplicationStatus = async (
@@ -174,7 +227,7 @@ export default function ManageJob({ jobId, talents, setTalents }) {
   const onDragEnd = (result) => {
     if (!result.destination) return;
     const { source, destination, draggableId } = result;
-    if (source.droppableId !== destination.droppableId) {
+    if (source.droppableId != destination.droppableId) {
       const sourceColumn = talents?.find(
         (item) => item?.id == source?.droppableId
       );
@@ -190,7 +243,7 @@ export default function ManageJob({ jobId, talents, setTalents }) {
             return {
               ...talent,
               items: talent?.items?.filter(
-                (item) => item?.user_id !== draggableColumn?.user_id
+                (item) => item?.user_id != draggableColumn?.user_id
               ),
               count: talent?.count - 1,
             };
@@ -232,9 +285,14 @@ export default function ManageJob({ jobId, talents, setTalents }) {
     }
   };
 
+  useEffect(() => {
+    getTalentMyJobStatusCount(jobId);
+  }, []);
+
   return (
     <DragDropContext onDragEnd={(result) => onDragEnd(result)}>
-      <Box sx={{ display: "flex", position: "sticky", left: "0" }}>
+      {/*
+        <Box sx={{ display: "flex", position: "sticky", left: "0" }}>
         <Typography sx={{ margin: "8px", padding: "20px" }}>Filter</Typography>
         <Box
           sx={{
@@ -274,6 +332,7 @@ export default function ManageJob({ jobId, talents, setTalents }) {
           </Box>
         </Box>
       </Box>
+      */}
 
       <Box sx={{ display: "flex", maxHeight: "100%" }}>
         {Object.entries(talents).map(([columnId, column], index) => {
@@ -288,7 +347,7 @@ export default function ManageJob({ jobId, talents, setTalents }) {
                     flex: "1 1 0px",
                     margin: "8px",
                     minWidth: "300px",
-                    // padding: "20px",
+                    padding: "20px",
                   }}
                 >
                   <StyledBox

@@ -11,7 +11,7 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import IconButton from "@mui/material/IconButton";
 import SmallButton from "../../common/SmallButton";
-import profile from "../../../assets/profile.svg";
+import profile from "../../../assets/profile.png";
 import history from "../../../assets/history.svg";
 import chat from "../../../assets/chat.svg";
 import match from "../../../assets/match.svg";
@@ -46,6 +46,7 @@ import {
   convertDatetimeAgo,
   dateConverter,
   dateConverterMonth,
+  weekConvert,
 } from "../../../utils/DateTime";
 import SelectMenu from "../../common/SelectMenu";
 import { useSelector } from "react-redux";
@@ -596,28 +597,28 @@ export default function AllTalentCard({
             <StyledHR></StyledHR>
             {talentContent?.candidate_profile?.candidate_info
               ?.employment_type != null && (
-                <SmallButton
-                  color="blueButton700"
-                  label={
-                    talentContent?.candidate_profile?.candidate_info
-                      ?.employment_type
-                  }
-                  mr="4px"
-                  fontSize="12px"
-                ></SmallButton>
-              )}
+              <SmallButton
+                color="blueButton700"
+                label={
+                  talentContent?.candidate_profile?.candidate_info
+                    ?.employment_type
+                }
+                mr="4px"
+                fontSize="12px"
+              ></SmallButton>
+            )}
 
             {talentContent?.candidate_profile?.candidate_info?.work_setup !=
               null && (
-                <SmallButton
-                  color="blueButton700"
-                  label={
-                    talentContent?.candidate_profile?.candidate_info?.work_setup
-                  }
-                  mr="8px"
-                  fontSize="12px"
-                ></SmallButton>
-              )}
+              <SmallButton
+                color="blueButton700"
+                label={
+                  talentContent?.candidate_profile?.candidate_info?.work_setup
+                }
+                mr="8px"
+                fontSize="12px"
+              ></SmallButton>
+            )}
           </Box>
 
           <Box className="summaryBoxContent">
@@ -968,8 +969,7 @@ export default function AllTalentCard({
                         height={18}
                         color="grayButton"
                         borderRadius="5px"
-                        label={item?.qualification?.name
-                        }
+                        label={item?.qualification?.name}
                         mr="4px"
                       ></SmallButton>
                     );
@@ -1285,11 +1285,10 @@ export default function AllTalentCard({
                     labelsData={label}
                     series={
                       talentContent?.candidate_profile?.candidate_info
-                        ?.grit_score != null &&
-                      toString(
+                        ?.grit_score != null && [
                         talentContent?.candidate_profile?.candidate_info
-                          ?.grit_score
-                      )
+                          ?.grit_score,
+                      ]
                     }
                     width={86}
                     nameSize="9px"
@@ -1309,35 +1308,35 @@ export default function AllTalentCard({
                   >
                     {talentContent?.candidate_profile?.candidate_info?.primary
                       ?.name != null && (
-                        <SmallButton
-                          fontWeight={500}
-                          minWidth="10px"
-                          height={25}
-                          color="purpleButton"
-                          borderRadius="5px"
-                          label={
-                            talentContent?.candidate_profile?.candidate_info
-                              ?.primary?.name
-                          }
-                          mr="4px"
-                        ></SmallButton>
-                      )}
+                      <SmallButton
+                        fontWeight={500}
+                        minWidth="10px"
+                        height={25}
+                        color="purpleButton"
+                        borderRadius="5px"
+                        label={
+                          talentContent?.candidate_profile?.candidate_info
+                            ?.primary?.name
+                        }
+                        mr="4px"
+                      ></SmallButton>
+                    )}
 
                     {talentContent?.candidate_profile?.candidate_info?.shadow
                       ?.name != null && (
-                        <SmallButton
-                          fontWeight={500}
-                          minWidth="10px"
-                          height={25}
-                          color="brownButton"
-                          borderRadius="5px"
-                          label={
-                            talentContent?.candidate_profile?.candidate_info
-                              ?.shadow?.name
-                          }
-                          mr="4px"
-                        ></SmallButton>
-                      )}
+                      <SmallButton
+                        fontWeight={500}
+                        minWidth="10px"
+                        height={25}
+                        color="brownButton"
+                        borderRadius="5px"
+                        label={
+                          talentContent?.candidate_profile?.candidate_info
+                            ?.shadow?.name
+                        }
+                        mr="4px"
+                      ></SmallButton>
+                    )}
                   </Box>
                   <Box>
                     {talentContent?.candidate_profile?.candidate_traits
@@ -1644,7 +1643,10 @@ export default function AllTalentCard({
                     <SingleRadialChart
                       hollow="65%"
                       labelsData={labelHon}
-                      series={honScoreData}
+                      series={[
+                        talentContent?.candidate_profile?.candidate_info
+                          ?.qualification_level,
+                      ]}
                       width={170}
                       nameSize="14px"
                       valueSize="20px"
@@ -1684,7 +1686,15 @@ export default function AllTalentCard({
                     <SingleRadialChart
                       hollow="65%"
                       labelsData={labelNoti}
-                      series={notiScoreData}
+                      series={
+                        talentContent?.candidate_profile?.candidate_info
+                          ?.notice_period?.description != null && [
+                          weekConvert(
+                            talentContent?.candidate_profile?.candidate_info
+                              ?.notice_period?.description
+                          ),
+                        ]
+                      }
                       width={170}
                       nameSize="14px"
                       valueSize="18px"
@@ -1919,6 +1929,6 @@ export default function AllTalentCard({
           </Box>
         </Box>
       </AccordionDetails>
-    </StyledAccordion >
+    </StyledAccordion>
   );
 }

@@ -215,12 +215,10 @@ export default function TheBasics({ changeStep }) {
         const experience = basic.experience.map((item) => {
           return item * 10;
         });
-        if (basic?.country_id != null) {
-          let temp = town.filter((val) => {
-            return val.region_id == basic?.country_id;
-          });
-          setTownsMain(temp);
-        }
+
+        console.log(basic);
+        console.log(basic.experience);
+        console.log(experience);
         setExpRange(experience);
         setRangeValue(salary);
         setBasicData(basic);
@@ -367,6 +365,9 @@ export default function TheBasics({ changeStep }) {
         [id]: newValue?.id,
       };
     }
+
+    const filteredErrors = errors?.filter((item) => item.key != id);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -381,6 +382,9 @@ export default function TheBasics({ changeStep }) {
       ...basicData,
       [name]: roleTypes.find((role) => role.id == value).name,
     };
+
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -392,8 +396,6 @@ export default function TheBasics({ changeStep }) {
     } = event;
     let slider = false,
       sliderValue = "";
-
-    console.log(value);
 
     if (name == "salary_id") {
       slider = true;
@@ -409,6 +411,9 @@ export default function TheBasics({ changeStep }) {
       });
       setTownsMain(temp);
     }
+
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -452,6 +457,9 @@ export default function TheBasics({ changeStep }) {
       ...basicData,
       [name || id]: workSetup.find((work) => work.id == value).name,
     };
+
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -491,6 +499,8 @@ export default function TheBasics({ changeStep }) {
       ...basicData,
       [name || id]: requiredQua.find((work) => work?.id == value)?.id,
     };
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
 
@@ -510,6 +520,8 @@ export default function TheBasics({ changeStep }) {
       );
       return;
     }
+    const filteredErrors = errors?.filter((item) => item.key != id);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
   };
   const handleSwitch = (event) => {
@@ -706,8 +718,6 @@ export default function TheBasics({ changeStep }) {
               {i18n["postAJob.jobTitleLabel"]}
             </InputLabel>
             <AutoComplete
-              showAddOption={true}
-              allowCustomInput={true}
               id="job_title_id"
               value={
                 titles?.find((title) => title.id == basicData.job_title_id) ||
@@ -718,15 +728,13 @@ export default function TheBasics({ changeStep }) {
               placeholder={i18n["postAJob.jobTitle"]}
               data={titles}
             ></AutoComplete>
-            {!titles?.find((title) => title.id == basicData.job_title_id) &&
-              !basicData.job_title_id &&
-              errors?.find((error) => error.key == "job_title_id") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "job_title_id").message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "job_title_id") && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find((error) => error.key == "job_title_id").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -746,18 +754,16 @@ export default function TheBasics({ changeStep }) {
               value={basicData.job_role_type}
               onHandleChange={handleJobRoleChange}
               options={roleTypes}
-              sx={{ width: "96%" }}
+              sx={{ width: "95%" }}
               placeholder={i18n["postAJob.roleType"]}
             />
-            {!basicData.job_role_type &&
-              errors?.find((error) => error.key == "job_role_type") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "job_role_type")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "job_role_type") && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find((error) => error.key == "job_role_type").message
+                }`}
+              </Typography>
+            )}
           </Box>
         </Box>
 
@@ -779,24 +785,23 @@ export default function TheBasics({ changeStep }) {
                 fontWeight: 500,
               }}
             >
-              {i18n["postAJob.currencyIdLabel"]}
+              {} {i18n["postAJob.currencyIdLabel"]}
             </InputLabel>
             <SelectMenu
               name="currency_id"
               value={basicData.currency_id}
               onHandleChange={handleChange}
               options={currency}
-              sx={{ width: "97%" }}
+              sx={{ width: "96%" }}
               placeholder={i18n["postAJob.preferredCurrency"]}
             />
-            {!basicData.currency_id &&
-              errors?.find((error) => error.key == "currency_id") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "currency_id").message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "currency_id") && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find((error) => error.key == "currency_id").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box
             sx={{
@@ -823,7 +828,7 @@ export default function TheBasics({ changeStep }) {
             </InputLabel>
             <Slider
               disableSwap
-              sx={{ width: "92%", ml: 1 }}
+              sx={{ width: "94%", ml: 2 }}
               disabled={!basicData.currency_id}
               name="salary"
               getAriaLabel={() => "Temperature range"}
@@ -883,15 +888,13 @@ export default function TheBasics({ changeStep }) {
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.countryPlaceHolder"]}
             />
-            {!basicData.country_id &&
-              errors?.find((error) => error.key == "job_role_type") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "job_role_type")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "job_role_type") && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find((error) => error.key == "job_role_type").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -916,17 +919,14 @@ export default function TheBasics({ changeStep }) {
               }
               onHandleChange={handleChange}
               options={townsMain}
-              sx={{ width: "96%" }}
+              sx={{ width: "95%" }}
               placeholder={i18n["postAJob.townPlaceHolder"]}
             />
-            {!town?.find((val) => val.town_id == basicData.town_id)?.name &&
-              errors?.find((error) => error.key == "town_id") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "town_id").message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "town_id") && (
+              <Typography color={"red"}>
+                {`*${errors?.find((error) => error.key == "town_id").message}`}
+              </Typography>
+            )}
           </Box>
         </Box>
 
@@ -952,14 +952,13 @@ export default function TheBasics({ changeStep }) {
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.workSetupPlaceholder"]}
             />
-            {!basicData.work_setup &&
-              errors?.find((error) => error.key == "work_setup") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "work_setup").message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "work_setup") && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find((error) => error.key == "work_setup").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -980,16 +979,15 @@ export default function TheBasics({ changeStep }) {
               id="tools"
               value={getToolValue()}
               onChange={handleMultipleAutoComplete}
-              sx={{ width: "96%", display: "inline-table" }}
+              sx={{ width: "95%", display: "inline-table" }}
               placeholder={i18n["postAJob.tools"]}
               data={tools}
             ></AutoComplete>
-            {getToolValue() == "" &&
-              errors?.find((error) => error.key == "tools") && (
-                <Typography color={"red"}>
-                  {`*${errors?.find((error) => error.key == "tools").message}`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "tools") && (
+              <Typography color={"red"}>
+                {`*${errors?.find((error) => error.key == "tools").message}`}
+              </Typography>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", mb: 3 }}>
@@ -1014,12 +1012,11 @@ export default function TheBasics({ changeStep }) {
             placeholder={i18n["postAJob.skills"]}
             data={skills}
           ></AutoComplete>
-          {getSkillValue() == "" &&
-            errors?.find((error) => error.key == "skills") && (
-              <Typography color={"red"}>
-                {`*${errors?.find((error) => error.key == "skills").message}`}
-              </Typography>
-            )}
+          {errors?.find((error) => error.key == "skills") && (
+            <Typography color={"red"}>
+              {`*${errors?.find((error) => error.key == "skills").message}`}
+            </Typography>
+          )}
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
@@ -1044,18 +1041,17 @@ export default function TheBasics({ changeStep }) {
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.requiredQualificationLevel"]}
             />
-            {!basicData.required_qualification_id &&
-              errors?.find(
-                (error) => error.key == "required_qualification_id"
-              ) && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find(
-                      (error) => error.key == "required_qualification_id"
-                    ).message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find(
+              (error) => error.key == "required_qualification_id"
+            ) && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find(
+                    (error) => error.key == "required_qualification_id"
+                  ).message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", width: "50%" }}>
             <InputLabel
@@ -1075,7 +1071,7 @@ export default function TheBasics({ changeStep }) {
               id="preferred_qualification_ids"
               value={getQuaValue()}
               onChange={handleMultipleAutoComplete}
-              sx={{ width: "96%" }}
+              sx={{ width: "95%" }}
               placeholder={i18n["postAJob.preferredQualification"]}
               data={qualifications}
             ></AutoComplete>
@@ -1107,7 +1103,7 @@ export default function TheBasics({ changeStep }) {
             </InputLabel>
             <Slider
               disableSwap
-              sx={{ width: "46%" }}
+              sx={{ width: "46%", ml: 1 }}
               // disabled={salaryObj.step == 0}
               name="experience"
               getAriaLabel={() => "Temperature range"}

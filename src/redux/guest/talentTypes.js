@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { PayloadAction } from "@reduxjs/toolkit";
-import { ALERT_TYPE, ERROR_MSG } from "../utils/Constants";
-import { getApi } from "../utils/Apis";
+import { ALERT_TYPE, ERROR_MSG } from "../../utils/Constants";
+import { getApi } from "../../utils/Apis";
 const initialState = {
   loading: false,
   alert: {
@@ -9,19 +9,19 @@ const initialState = {
     type: ALERT_TYPE.ERROR, // set default type to avoid warning in console
     msg: ERROR_MSG,
   },
-  types: [],
+  talentType: [],
 };
-export const getAllTypes = createAsyncThunk(
-  "getAllTypes",
+export const getAllTalentType = createAsyncThunk(
+  "getAllTalentType",
   async (payload, { dispatch }) => {
     // dispatch(setLoading(true))
-    const { data } = await getApi("/personalities");
+    const { data } = await getApi("/job/types");
     // dispatch(setLoading(false))
     return data;
   }
 );
-export const configAllTypes = createSlice({
-  name: "configtypes",
+export const configTalenType = createSlice({
+  name: "talenttype",
   initialState,
   reducers: {
     setLoading: (state, action) => {
@@ -48,36 +48,34 @@ export const configAllTypes = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(getAllTypes.pending, (state, action) => {
+      .addCase(getAllTalentType.pending, (state, action) => {
         state.loading = true;
       })
-      .addCase(getAllTypes.fulfilled, (state, action) => {
-        const allTypes = action.payload.data.map((type, index) => {
-          type.id = type.personality_id;
-          // type.color =
-          //   (type?.name == "challenger" && "purpleButton") ||
-          //   (type?.name == "character" && "yellowButton200") ||
-          //   (type?.name == "contemplator" && "blueButton500") ||
-          //   (type?.name == "collaborator" && "pinkButton");
-          type.color = "purpleButton";
+      .addCase(getAllTalentType.fulfilled, (state, action) => {
+        const allTalentType = action.payload.data.map((type, index) => {
+          // type.id = type.job_role_type_id;
+          type.id = index + 1;
+          type.color = "blueButton700";
           type.name = type.name.toLowerCase();
           return type;
         });
         state.loading = false;
         const obj = {
           id: 1111,
-          name: "all types",
-          color: "purpleButton",
+          name: "all talent",
+          color: "blueButton700",
           title: true,
         };
-        allTypes.unshift(obj);
-        state.types = allTypes;
+        allTalentType.unshift(obj);
+        state.talentType = allTalentType.filter(
+          (item) => !item.job_crayon_type_id
+        );
       })
-      .addCase(getAllTypes.rejected, (state, action) => {
+      .addCase(getAllTalentType.rejected, (state, action) => {
         state.loading = false;
       });
   },
 });
 // Action creators are generated for each case reducer function
-export const { setLoading, setAlert } = configAllTypes.actions;
-export default configAllTypes.reducer;
+export const { setLoading, setAlert } = configTalenType.actions;
+export default configTalenType.reducer;

@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
-import { CV_STEPS } from "../../../utils/Constants";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import Typography from "@mui/material/Typography";
+import { CV_STEPS, POST_JOB_STEPS } from "../../../utils/Constants";
 import InputBox from "../../common/InputBox";
 import Slider from "@mui/material/Slider";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
@@ -13,8 +13,10 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import IconButton from "@mui/material/IconButton";
 import Switch from "@mui/material/Switch";
 import { alpha } from "@mui/material/styles";
-
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import {
+  addCultureData,
+  getCultureData,
   getPersonalities,
   getSkills,
   getTraits,
@@ -25,17 +27,19 @@ import SelectMenu from "../../common/SelectMenu";
 import AutoComplete from "../../common/AutoComplete";
 import { addId } from "../../../utils/Common";
 import { cloneDeep, isEmpty } from "lodash";
-import { InputLabel } from "@mui/material";
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  marginRight: "24px",
-  fontSize: "14px",
-  width: "150px",
-  border: `2px solid ${theme.palette.redButton100.main}`,
-  "& .MuiSvgIcon-root": {
-    fontSize: "16px",
-  },
-}));
+import {
+  Checkbox,
+  Chip,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
+  Select,
+} from "@mui/material";
+import { useSelector } from "react-redux";
+import StyledButton from "../../common/StyledButton";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTheme } from "@emotion/react";
 
 const BlueSwitch = styled(Switch)(({ theme }) => ({
   "& .MuiSwitch-switchBase.Mui-checked": {
@@ -58,17 +62,18 @@ const BlueSwitch = styled(Switch)(({ theme }) => ({
 const SCREEN_QUESTIONS = {
   job_id: "",
   question: "",
-  answer: "",
 };
 
 const CULTURE = {
-  // company_id: 10, // remobe company id once employer flow is setup
-  job_id: 0,
-  primary_personality: "",
-  shadow_personality: "",
-  traits: [],
+  jobDetails: {
+    user_id: "",
+    job_id: "",
+    primary_personality: "",
+    shadow_personality: "",
+    grit_score: "",
+  },
   screen_questions: [],
-  grit_score: "",
+  traits: [],
 };
 
 const marks = [
@@ -94,39 +99,35 @@ const marks = [
   },
 ];
 
-function textValue(value) {
-  return value;
-}
-export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
+export default function CultureAdd({ changeStep }) {
   const i18n = locale.en;
   const dispatch = useDispatch();
-  const [cultureData, setCultureData] = useState({ ...CULTURE, job_id: jobId });
-  const [skills, setSkills] = useState([]);
-  const [personalities, setPersonalities] = useState([]);
-  const [traits, setTraits] = useState([]);
-  const questions = cultureData.screen_questions;
-  const [value, setValue] = useState([57]);
+  const navigate = useNavigate();
+  const theme = useTheme();
 
-  useEffect(() => {
-    if (!isEmpty(culture)) {
-      setCultureData({ ...culture, job_id: jobId });
-      onSubmit("culture", { ...culture, job_id: jobId });
-    }
-  }, []);
+  const [cultureData, setCultureData] = useState({ ...CULTURE });
+  const [errors, setErrors] = useState([]);
+  const { jobId } = useParams();
+  const [selectedCount, setSelectedCount] = useState(0);
 
-  const getAllData = async () => {
+  const { personalities, traits } = useSelector((state) => state.postJobs);
+
+  const getAllCultureData = async () => {
     try {
       dispatch(setLoading(true));
-      const [personalities, skills, traits] = await Promise.all([
-        dispatch(getPersonalities()),
-        dispatch(getSkills()),
-        dispatch(getTraits()),
-      ]);
-      setSkills(skills.payload.data);
-      setPersonalities(
-        addId(personalities.payload.data, "personality_id", "name")
-      );
-      setTraits(addId(traits.payload.data, "trait_id", "name"));
+      const { payload } = await dispatch(getCultureData(jobId));
+      if (payload?.status == "success") {
+        const basic = payload?.data;
+        setCultureData(basic);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
       dispatch(setLoading(false));
     } catch (error) {
       dispatch(setLoading(false));
@@ -140,68 +141,114 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
     }
   };
 
-  useEffect(() => {
-    getAllData();
-  }, []);
+  const getAllData = async () => {
+    try {
+      dispatch(setLoading(true));
+      await Promise.all([dispatch(getPersonalities()), dispatch(getTraits())]);
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispatch(setLoading(false));
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
+
+  const saveCulture = async () => {
+    try {
+      const culturePayload = {
+        job_id: cultureData.jobDetails.job_id,
+        primary_personality: cultureData.jobDetails.primary_personality,
+        shadow_personality: cultureData.jobDetails.shadow_personality,
+        grit_score: cultureData.jobDetails.grit_score,
+        screen_questions: [...cultureData.screen_questions],
+        traits: [...cultureData.traits],
+      };
+      const { payload } = await dispatch(addCultureData(culturePayload));
+      if (payload?.status == "success") {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.SUCCESS,
+            msg: "Culture Data added successfully!",
+          })
+        );
+        setErrors([]);
+        setTimeout(() => {
+          navigate("/employer/my-jobs");
+        }, [500]);
+      } else if (payload?.status == "error") {
+        setErrors(payload?.errors);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
 
   const handleChange = (event) => {
     const {
       target: { value },
       target: { name },
-      target: { id },
     } = event;
-    let slider = false,
-      sliderValue = "";
+    if (
+      cultureData.jobDetails.primary_personality == value ||
+      cultureData.jobDetails.shadow_personality == value
+    ) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: "Primary and Shadow Personality should not be similar",
+        })
+      );
+      return;
+    }
 
     const newCultureData = {
       ...cultureData,
-      [name || id]: slider ? sliderValue : value,
+      jobDetails: {
+        ...cultureData.jobDetails,
+        [name]: value,
+      },
     };
 
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    // setErrors(filteredErrors);
     setCultureData(newCultureData);
-    onSubmit("culture", newCultureData);
-  };
-  const rangeHandler = (event) => {
-    const {
-      target: { value },
-      target: { name },
-      target: { id },
-    } = event;
-    const newCultureData = {
-      ...cultureData,
-      [name]: value,
-    };
-    setCultureData(newCultureData);
-    onSubmit("culture", newCultureData);
-  };
-  const handleQuestionChange = (event, index) => {
-    const {
-      target: { value },
-      target: { id },
-    } = event;
-
-    let newCultureData = cloneDeep(cultureData);
-    newCultureData.screen_questions[index] = {
-      [id]: value,
-      answer: "",
-      job_id: jobId,
-    };
-
-    setCultureData(newCultureData);
-    onSubmit("culture", newCultureData);
   };
 
-  const getTraitValue = () => {
-    return;
+  const textValue = (value) => {
+    return value;
   };
+
   const handleMultipleAutoComplete = (event, newValue, id) => {
     if (newValue.length <= 5) {
       let newCultureData = {
         ...cultureData,
-        [id]: newValue.map((val) => val?.trait_id) || "",
+        [id]: newValue.map((val) => val?.inputValue || val?.trait_id || val),
       };
+      const filteredErrors = errors?.filter((item) => item.key != id);
+      // setErrors(filteredErrors);
+      setSelectedCount(newValue.length);
       setCultureData(newCultureData);
-      onSubmit("culture", newCultureData);
     } else {
       newValue.splice(5, 1);
       dispatch(
@@ -214,23 +261,89 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
     }
   };
 
+  const handleAutoFill = (event) => {
+    const {
+      target: { value },
+      target: { name },
+    } = event;
+  };
+
+  const getTraitsValue = () => {
+    if (cultureData.traits?.length == 0) {
+      return [];
+    }
+
+    return cultureData.traits?.map(
+      (id) => traits?.find((trait) => trait.id == id) || id
+    );
+  };
+
+  const rangeHandler = (event) => {
+    const {
+      target: { value },
+      target: { name },
+      target: { id },
+    } = event;
+
+    const newCultureData = {
+      ...cultureData,
+      jobDetails: {
+        ...cultureData.jobDetails,
+        [name]: value,
+      },
+    };
+
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
+    setCultureData(newCultureData);
+  };
+
+  const handleQuestionChange = (event, index) => {
+    const {
+      target: { value },
+      target: { id },
+    } = event;
+
+    let newCultureData = cloneDeep(cultureData);
+    newCultureData.screen_questions[index] = {
+      [id]: value,
+      job_id: Number(jobId),
+    };
+    setCultureData(newCultureData);
+  };
+
   const addQuestion = () => {
-    console.log(cultureData);
     const newCultureData = {
       ...cultureData,
       screen_questions: [...cultureData?.screen_questions, SCREEN_QUESTIONS],
     };
+
+    const filteredErrors = errors?.filter(
+      (item) => item.key != "screen_questions"
+    );
+    setErrors(filteredErrors);
     setCultureData(newCultureData);
-    onSubmit("culture", newCultureData);
   };
   const removeQuestion = (event, index) => {
-    if (questions?.length >= 1) {
-      const newquestions = questions.filter((data, i) => i + 1 != index);
-      const newCultureData = { ...cultureData, screen_questions: newquestions };
+    if (cultureData?.screen_questions?.length >= 1) {
+      const newquestions = cultureData?.screen_questions.filter(
+        (data, i) => i + 1 != index
+      );
+      const newCultureData = {
+        ...cultureData,
+        screen_questions: newquestions,
+      };
       setCultureData(newCultureData);
-      onSubmit("culture", newCultureData);
     }
   };
+
+  useEffect(() => {
+    getAllData();
+  }, []);
+
+  useEffect(() => {
+    jobId != undefined && getAllCultureData();
+  }, [jobId]);
 
   return (
     <Box>
@@ -262,20 +375,21 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
             </InputLabel>
             <SelectMenu
               name="primary_personality"
-              value={cultureData.primary_personality || ""}
+              value={cultureData?.jobDetails?.primary_personality}
               onHandleChange={handleChange}
               options={personalities}
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.preferredDominantPersonality"]}
             />
-            {errors.find((error) => error.key == "primary_personality") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "primary_personality")
-                    .message
-                }`}
-              </Typography>
-            )}
+            {!cultureData?.jobDetails?.primary_personality &&
+              errors?.find((error) => error.key == "primary_personality") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "primary_personality")
+                      .message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -290,22 +404,24 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
             >
               {i18n["postAJob.shadowLabel"]}
             </InputLabel>
+
             <SelectMenu
               name="shadow_personality"
-              value={cultureData.shadow_personality || ""}
+              value={cultureData?.jobDetails?.shadow_personality}
               onHandleChange={handleChange}
               options={personalities}
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.preferredShadowPersonality"]}
             />
-            {errors.find((error) => error.key == "shadow_personality") && (
-              <Typography color={"red"}>
-                {`*${
-                  errors.find((error) => error.key == "shadow_personality")
-                    .message
-                }`}
-              </Typography>
-            )}
+            {!cultureData?.jobDetails?.shadow_personality &&
+              errors?.find((error) => error.key == "shadow_personality") && (
+                <Typography color={"red"}>
+                  {`*${
+                    errors?.find((error) => error.key == "shadow_personality")
+                      .message
+                  }`}
+                </Typography>
+              )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
@@ -322,30 +438,26 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
             >
               {i18n["postAJob.traitsLabel"]}
             </InputLabel>
-            {/* <SelectMenu
-              name="traits"
-              value={getTraitValue()}
-              onHandleChange={handleChange}
-              options={traits}
-              sx={{ width: "95%" }}
-              placeholder={i18n["postAJob.preferredShadowPersonality"]}
-            /> */}
+
             <AutoComplete
+              // selectedCount={selectedCount}
               multiple={true}
               id="traits"
               name="traits"
-              value={getTraitValue()}
+              value={getTraitsValue()}
               onChange={handleMultipleAutoComplete}
-              sx={{ width: "95%" }}
-              placeholder={i18n["postAJob.preferredShadowPersonality"]}
+              sx={{ width: "95%", display: "inline-table" }}
+              placeholder={i18n["postAJob.preferredTraits"]}
               data={traits}
               limitTags={5}
             ></AutoComplete>
-            {errors.find((error) => error.key == "traits") && (
-              <Typography color={"red"}>
-                {`*${errors.find((error) => error.key == "traits").message}`}
-              </Typography>
-            )}
+
+            {getTraitsValue() == "" &&
+              errors?.find((error) => error.key == "traits") && (
+                <Typography color={"red"}>
+                  {`*${errors?.find((error) => error.key == "traits").message}`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -365,18 +477,19 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
               name="grit_score"
               aria-label="Custom marks"
               color="redButton100"
+              value={cultureData?.jobDetails?.grit_score}
               getAriaValueText={textValue}
               step={1}
-              onChange={rangeHandler}
+              onChange={(event) => rangeHandler(event)}
               valueLabelDisplay="auto"
               valueLabelFormat={textValue}
               marks={marks}
               sx={{ width: "88%", ml: 2 }}
             />
-            {errors.find((error) => error.key == "grit_score") && (
+            {errors?.find((error) => error.key == "grit_score") && (
               <Typography color={"red"}>
                 {`*${
-                  errors.find((error) => error.key == "grit_score").message
+                  errors?.find((error) => error.key == "grit_score").message
                 }`}
               </Typography>
             )}
@@ -402,15 +515,15 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
         >
           {i18n["postAJob.screeningQuestionPara"]}
         </Typography>
-        {errors.find((error) => error.key == "screen_questions") && (
+        {errors?.find((error) => error.key == "screen_questions") && (
           <Typography color={"red"}>
             {`*${
-              errors.find((error) => error.key == "screen_questions").message
+              errors?.find((error) => error.key == "screen_questions").message
             }`}
           </Typography>
         )}
-        {questions?.length > 0 &&
-          questions?.map((question, index) =>
+        {cultureData?.screen_questions?.length > 0 &&
+          cultureData?.screen_questions?.map((question, index) =>
             index < 5 ? (
               <Box key={index} sx={{ display: "flex" }}>
                 <Box
@@ -507,6 +620,34 @@ export default function CultureAdd({ jobId, onSubmit, culture, errors }) {
 
           <BlueSwitch />
         </Box>
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          mt: 16,
+        }}
+      >
+        <StyledButton
+          startIcon={<ArrowBackIosIcon />}
+          variant="outlined"
+          sx={{ border: "none" }}
+          color="redButton100"
+          onClick={() => {
+            changeStep(2);
+          }}
+        >
+          {POST_JOB_STEPS[1]}
+        </StyledButton>
+        <StyledButton
+          // disabled={!jobId}
+          sx={{ mr: 0 }}
+          variant="contained"
+          color="redButton100"
+          onClick={saveCulture}
+        >
+          {i18n["postAJob.save"]}
+        </StyledButton>
       </Box>
     </Box>
   );

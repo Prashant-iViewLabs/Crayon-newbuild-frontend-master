@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import job_logo from "../../../assets/job_logo.svg";
-import profile from "../../../assets/profile.svg";
+import profile from "../../../assets/profile.png";
 import job_volume from "../../../assets/job_volume.svg";
 import job_star from "../../../assets/job_star.svg";
 import job_star_selected from "../../../assets/job_star_selected.svg";
@@ -38,13 +38,9 @@ export default function TalentCard({ index, job }) {
   const dispatch = useDispatch();
   const theme = useTheme();
   const [colorKey, setColorKey] = useState("color");
-  const [chartData1, setChartData1] = useState([
-    job?.candidate_profile?.candidate_info?.salary?.max,
-  ]);
-  const [chartData2, setChartData2] = useState([
-    job?.candidate_profile?.candidate_info?.experience?.year,
-  ]);
-  const [chartData3, setChartData3] = useState([30]);
+  const [chartData1, setChartData1] = useState([job?.TotalUserCount]);
+  const [chartData2, setChartData2] = useState([job?.TotalUserShorlisted]);
+  const [chartData3, setChartData3] = useState([job?.TotalUserInterviewed]);
   const [isHovered, setIsHovered] = useState(false);
   const [isStar, setIsStarSelected] = useState(job?.favourite);
 
@@ -59,9 +55,6 @@ export default function TalentCard({ index, job }) {
     job?.candidate_profile?.candidate_info?.shadow?.name,
     ...(job?.candidate_profile?.candidate_traits || []),
   ]);
-
-  console.log(arrSlider2);
-  console.log(job);
 
   const token = localStorage?.getItem("token");
   let decodedToken;
@@ -290,7 +283,7 @@ export default function TalentCard({ index, job }) {
               letterSpacing: "0.25px",
             }}
           >
-            {job?.candidate_profile?.town?.name},
+            {job?.candidate_profile?.town?.name},{" "}
             {job?.candidate_profile?.town?.region?.name}
           </Typography>
         </Box>
@@ -335,8 +328,8 @@ export default function TalentCard({ index, job }) {
         <Box
           sx={
             job?.candidate_profile?.industry_users.length <= 1 &&
-            job?.candidate_profile?.candidate_info?.employment_type !== "" &&
-            job?.candidate_profile?.candidate_info?.work_setup !== ""
+            job?.candidate_profile?.candidate_info?.employment_type != "" &&
+            job?.candidate_profile?.candidate_info?.work_setup != ""
               ? {
                   width: "100%",
                   display: "flex",
@@ -348,10 +341,11 @@ export default function TalentCard({ index, job }) {
                 }
           }
         >
+          {console.log(arrSlider)}
           {arrSlider
-            .filter((item) => item !== null || item?.industry?.name !== null)
+            .filter((item) => item != null || item?.industry?.name != null)
             .map((item, index) => {
-              if (item !== "") {
+              if (item != "") {
                 return (
                   <SmallButton
                     color={
@@ -391,12 +385,13 @@ export default function TalentCard({ index, job }) {
         padding="0 8px 8px 0px"
         minHeight={45}
         sx={
-          arrSlider2.length >= 4
+          arrSlider2.length >= 5
             ? { justifyContent: "space-evenly", alignItems: "center" }
             : { ml: 2 }
         }
       >
-        {arrSlider2.length >= 4 ? (
+        {console.log(arrSlider2)}
+        {arrSlider2.length >= 5 ? (
           <IconButton
             sx={{
               border: `1px solid ${theme.palette.grayBorder}`,
@@ -415,9 +410,9 @@ export default function TalentCard({ index, job }) {
         ) : null}
         <Box
           sx={
-            job?.candidate_profile?.candidate_traits?.length <= 1 &&
-            job?.candidate_profile?.candidate_info?.primary?.name !== null &&
-            job?.candidate_profile?.candidate_info?.shadow?.name !== null
+            job?.candidate_profile?.candidate_traits?.length <= 2 &&
+            job?.candidate_profile?.candidate_info?.primary?.name != null &&
+            job?.candidate_profile?.candidate_info?.shadow?.name != null
               ? {
                   width: "65%",
                   display: "flex",
@@ -430,12 +425,18 @@ export default function TalentCard({ index, job }) {
           }
         >
           {arrSlider2
-            .filter((item) => item !== null)
+            .filter((item) => item != null)
             .map((item, index) => {
-              if (item !== undefined) {
+              if (item != undefined) {
                 return (
                   <SmallButton
-                    color={item?.trait?.name ? "grayButton200" : "purpleButton"}
+                    color={
+                      item?.trait?.name
+                        ? "grayButton200"
+                        : index == 1
+                        ? "brownButton"
+                        : "purpleButton"
+                    }
                     height={25}
                     label={item?.trait ? item?.trait?.name : item}
                     mr="4px"
@@ -444,7 +445,7 @@ export default function TalentCard({ index, job }) {
               }
             })}
         </Box>
-        {arrSlider2.length >= 4 ? (
+        {arrSlider2.length >= 5 ? (
           <IconButton
             sx={{
               border: `1px solid ${theme.palette.grayBorder}`,
@@ -472,7 +473,7 @@ export default function TalentCard({ index, job }) {
         <Box sx={{ margin: "0 -22px 0 -22px" }}>
           <SingleRadialChart
             labelsData={label1}
-            series={chartData1}
+            series={[job?.TotalUserCount]}
             width={140}
             color={theme.palette.chart.red}
             index={index}
@@ -482,7 +483,7 @@ export default function TalentCard({ index, job }) {
         <Box sx={{ margin: "0 -22px 0 -22px" }}>
           <SingleRadialChart
             labelsData={label2}
-            series={chartData2}
+            series={[job?.TotalUserShorlisted]}
             width={140}
             color={theme.palette.chart.green}
             index={index}
@@ -492,7 +493,7 @@ export default function TalentCard({ index, job }) {
         <Box sx={{ margin: "0 -22px 0 -22px" }}>
           <SingleRadialChart
             labelsData={label3}
-            series={chartData3}
+            series={[job?.TotalUserInterviewed]}
             width={140}
             color={theme.palette.chart.yellow}
             index={index}

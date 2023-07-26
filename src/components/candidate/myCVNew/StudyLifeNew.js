@@ -205,32 +205,40 @@ export default function StudyLife({ changeStep }) {
       ...newCultureData.qualification[index],
       [name]: value,
     };
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setStudyData(newCultureData);
   };
 
   const handleChange = (event, newValue, id, index) => {
     const newStudyData = JSON.parse(JSON.stringify(studyData));
-
+    let filteredErrors;
     if (event.target.name == "school_year_end") {
       const id = event.target.name;
       newStudyData.otherdata.school_year_end = event.target.value;
+      filteredErrors = errors?.filter((item) => item.key != id);
     } else if (id == "school_id") {
       let id_institution = newValue?.school_id;
+      filteredErrors = errors?.filter((item) => item.key != id);
       newStudyData.otherdata.school_id = id_institution;
     } else if (event.target.name == "association_year_end") {
       const id = event.target.name;
+      filteredErrors = errors?.filter((item) => item.key != id);
       newStudyData.otherdata.association_year_end = event.target.value;
     } else if (id == "association_id") {
       let id_institution = newValue?.association_id;
+      filteredErrors = errors?.filter((item) => item.key != id);
       newStudyData.otherdata.association_id = id_institution;
     } else if (id == "institution_id") {
       let id_institution = newValue?.institution_id || null;
+      filteredErrors = errors?.filter((item) => item.key != id);
       newStudyData.qualification[index].institution_id = id_institution;
     } else if (id == "qualification_id") {
       let id_institution = newValue?.qualification_id;
+      filteredErrors = errors?.filter((item) => item.key != id);
       newStudyData.qualification[index].qualification_id = id_institution;
     }
-
+    setErrors(filteredErrors);
     setStudyData(newStudyData);
   };
 
@@ -246,6 +254,11 @@ export default function StudyLife({ changeStep }) {
   const handleSelectChange = (event, index) => {
     const newStudyData = JSON.parse(JSON.stringify(studyData));
     newStudyData.qualification[index].year_ended = event.target.value;
+    const filteredErrors = errors?.filter(
+      (item) => item.key != event.target.name
+    );
+    setErrors(filteredErrors);
+
     setStudyData(newStudyData);
   };
   const handleSelectChange2 = (event, id, name, index) => {
@@ -429,18 +442,14 @@ export default function StudyLife({ changeStep }) {
                   placeholder={i18n["myCV.institutionPlaceholder"]}
                   data={institution}
                 ></AutoComplete>
-                {!institution?.find(
-                  (institute, index) => institute.id == work?.institution_id
-                ) &&
-                  !work?.institution_id &&
-                  errors?.find((error) => error.key == "institution_id") && (
-                    <Typography color={"red !important"}>
-                      {`*${
-                        errors?.find((error) => error.key == "institution_id")
-                          .message
-                      }`}
-                    </Typography>
-                  )}
+                {errors?.find((error) => error.key == "institution_id") && (
+                  <Typography color={"red !important"}>
+                    {`*${
+                      errors?.find((error) => error.key == "institution_id")
+                        .message
+                    }`}
+                  </Typography>
+                )}
               </Box>
               <Box sx={{ width: "27%" }}>
                 <InputLabel
@@ -455,6 +464,7 @@ export default function StudyLife({ changeStep }) {
                 >
                   {i18n["myCV.yearOfCompletionLabel"]}
                 </InputLabel>
+
                 <Select
                   disabled={noStudyExp}
                   id="year_ended"
@@ -466,7 +476,6 @@ export default function StudyLife({ changeStep }) {
                     width: "100%",
                     borderRadius: "25px",
                     height: "40px",
-                    background: "#fff"
                   }}
                 >
                   {yearOptions.map((val) => (
@@ -475,15 +484,14 @@ export default function StudyLife({ changeStep }) {
                     </MenuItem>
                   ))}
                 </Select>
-                {getYearEndedValue(index) == "" &&
-                  errors?.find((error) => error.key == "year_ended") && (
-                    <Typography color={"red !important"}>
-                      {`*${
-                        errors?.find((error) => error.key == "year_ended")
-                          .message
-                      }`}
-                    </Typography>
-                  )}
+
+                {errors?.find((error) => error.key == "year_ended") && (
+                  <Typography color={"red !important"}>
+                    {`*${
+                      errors?.find((error) => error.key == "year_ended").message
+                    }`}
+                  </Typography>
+                )}
               </Box>
               <Box
                 sx={{ width: "20%", display: "flex", alignItems: "baseline" }}
@@ -547,18 +555,14 @@ export default function StudyLife({ changeStep }) {
                 placeholder={i18n["myCV.qualificationPlaceholder"]}
                 data={qualification}
               ></AutoComplete>
-              {!qualification?.find(
-                (qual, index) => qual.id == work?.qualification_id
-              ) &&
-                !work?.qualification_id &&
-                errors?.find((error) => error.key == "qualification_id") && (
-                  <Typography color={"red !important"}>
-                    {`*${
-                      errors?.find((error) => error.key == "qualification_id")
-                        .message
-                    }`}
-                  </Typography>
-                )}
+              {errors?.find((error) => error.key == "qualification_id") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "qualification_id")
+                      .message
+                  }`}
+                </Typography>
+              )}
             </Box>
 
             <Box sx={{ width: "100%" }}>
@@ -585,18 +589,14 @@ export default function StudyLife({ changeStep }) {
                 sx={{ width: "97%" }}
                 placeholder={i18n["myCV.typeOfqualificationPlaceholder"]}
               />
-              {!work.qualificationtype_id &&
-                errors?.find(
-                  (error) => error.key == "qualificationtype_id"
-                ) && (
-                  <Typography color={"red !important"}>
-                    {`*${
-                      errors?.find(
-                        (error) => error.key == "qualificationtype_id"
-                      ).message
-                    }`}
-                  </Typography>
-                )}
+              {errors?.find((error) => error.key == "qualificationtype_id") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "qualificationtype_id")
+                      .message
+                  }`}
+                </Typography>
+              )}
             </Box>
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
@@ -682,18 +682,13 @@ export default function StudyLife({ changeStep }) {
               placeholder={i18n["myCV.schoolPlaceholder"]}
               data={school}
             ></AutoComplete>
-            {!school?.find(
-              (institute, index) =>
-                institute.id == studyData?.otherdata?.school_id
-            ) &&
-              !studyData?.otherdata?.school_id &&
-              errors?.find((error) => error.key == "school_id") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "school_id").message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "school_id") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "school_id").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "27%" }}>
             <InputLabel
@@ -719,7 +714,6 @@ export default function StudyLife({ changeStep }) {
                 width: "100%",
                 borderRadius: "25px",
                 height: "40px",
-                background: "#fff"
               }}
             >
               {yearOptions.map((val) => (
@@ -728,15 +722,14 @@ export default function StudyLife({ changeStep }) {
                 </MenuItem>
               ))}
             </Select>
-            {!studyData?.otherdata?.school_year_end &&
-              errors?.find((error) => error.key == "school_year_end") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "school_year_end")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "school_year_end") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "school_year_end")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "20%", display: "flex", alignItems: "baseline" }}>
             <InputLabel
@@ -839,15 +832,13 @@ export default function StudyLife({ changeStep }) {
               placeholder={i18n["myCV.associationPlaceholder"]}
               data={association}
             ></AutoComplete>
-            {getAssociationValue() == "" &&
-              errors?.find((error) => error.key == "association_id") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "association_id")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "association_id") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "association_id").message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "27%" }}>
             <InputLabel
@@ -873,7 +864,6 @@ export default function StudyLife({ changeStep }) {
                 width: "100%",
                 borderRadius: "25px",
                 height: "40px",
-                background: "#fff"
               }}
             >
               {yearOptions.map((val) => (
@@ -882,15 +872,14 @@ export default function StudyLife({ changeStep }) {
                 </MenuItem>
               ))}
             </Select>
-            {!studyData?.otherdata?.association_year_end &&
-              errors?.find((error) => error.key == "association_year_end") && (
-                <Typography color={"red !important"}>
-                  {`*${
-                    errors?.find((error) => error.key == "association_year_end")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "association_year_end") && (
+              <Typography color={"red !important"}>
+                {`*${
+                  errors?.find((error) => error.key == "association_year_end")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "20%", display: "flex", alignItems: "baseline" }}>
             <InputLabel

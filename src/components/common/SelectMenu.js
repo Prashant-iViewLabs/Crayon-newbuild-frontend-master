@@ -73,7 +73,11 @@ export default function SelectMenu({
         }}
         renderValue={(selected) => {
           if (!selected || selected.length === 0) {
-            return <em style={{ opacity: "0.4" }}>{placeholder}</em>;
+            return (
+              <em style={{ opacity: "0.4", fontStyle: "normal" }}>
+                {placeholder}
+              </em>
+            );
           }
           if (type == "multiple") {
             console.log(selected);

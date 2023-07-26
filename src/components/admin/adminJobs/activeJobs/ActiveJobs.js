@@ -1,149 +1,23 @@
-import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@mui/material/styles";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import locale from "../../../../i18n/locale";
 import { useDispatch } from "react-redux";
 import { getAllJobs, getJobCount } from "../../../../redux/admin/jobsSlice";
 import JobCard from "../JobCard";
-import { setAlert, setLoading } from "../../../../redux/configSlice";
-import { ALERT_TYPE, ERROR_MSG } from "../../../../utils/Constants";
-// import { makeStyles } from "@material-ui/core/styles";
+import { setAlert } from "../../../../redux/configSlice";
+import { ALERT_TYPE } from "../../../../utils/Constants";
 import { Grid } from "@mui/material";
 import InfiniteScroll from "react-infinite-scroll-component";
-import {
-  getTalentJobStatusApplications,
-  getTalentJobStatusCount,
-} from "../../../../redux/employer/myJobsSlice";
-import CustomDialog from "../../../common/CustomDialog";
-import ManageJob from "../../../employer/myJobs/ManageJob";
-// import { getAllJobs } from "../../../redux/guest/jobsSlice";
-
-const StyledSelect = styled(Select)(({ theme }) => ({
-  width: "49%",
-  // marginRight: '16px',
-  borderRadius: "20px",
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: theme.palette.black,
-  },
-}));
-
-const Scroll = styled(InfiniteScroll)(({ theme }) => ({
-  "& .infinite-scroll-component__outerdiv": {
-    width: "inherit",
-  },
-}));
 
 export default function ActiveJobs() {
   const i18n = locale.en;
-  const theme = useTheme();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const [allJobs, setAllJobs] = useState([]);
   const dispatch = useDispatch();
   const [lastKey, setLastKey] = useState("");
   const [totalJob, setTotalJob] = useState(0);
-  const [openManageJobDialog, setOpenManageJobDialog] = useState(false);
-  const [talents, setTalents] = useState([]);
-  const [jobId, setjobId] = useState();
-
-  let lastkey = useRef(0);
-
-  const onHandleManageTalent = (activeJobId) => {
-    navigate(`${pathname}/${activeJobId}`);
-  };
-
-  const onHandleClose = () => {
-    setOpenManageJobDialog(false);
-  };
-
-  const getTalentStatusApplications = async (
-    jobId,
-    jobStatusId,
-    manageStatus
-  ) => {
-    try {
-      const [manage] = await Promise.all([
-        dispatch(
-          getTalentJobStatusApplications({
-            job_id: jobId,
-            job_status_id: jobStatusId,
-          })
-        ),
-      ]);
-      lastkey += 1;
-      setTalents((prevTalents) => {
-        const updatedTalents = manageStatus?.map((item) => {
-          if (item.id === jobStatusId) {
-            return {
-              ...item,
-              items: manage?.payload?.data,
-            };
-          } else {
-            const existingItem = prevTalents.find(
-              (prevItem) => prevItem.id === item.id
-            );
-            return { ...item, items: existingItem ? existingItem.items : [] };
-          }
-        });
-        return [...updatedTalents];
-      });
-    } catch (error) {
-      dispatch(setLoading(false));
-      dispatch(
-        setAlert({
-          show: true,
-          type: ALERT_TYPE.ERROR,
-          msg: ERROR_MSG,
-        })
-      );
-    }
-  };
-
-  const getTalentMyJobStatusCount = async (jobId) => {
-    try {
-      const [manage] = await Promise.all([
-        dispatch(getTalentJobStatusCount({ job_id: jobId })),
-      ]);
-      console.log(manage.payload.data);
-      manage.payload.data.map((item) => {
-        item.count > 0
-          ? getTalentStatusApplications(jobId, item.id, manage.payload.data)
-          : setTalents((prevTalents) => {
-              const updatedTalents = manage.payload.data?.map((item) => {
-                const existingItem = prevTalents.find(
-                  (prevItem) => prevItem.id === item.id
-                );
-                return {
-                  ...item,
-                  items: existingItem ? existingItem.items : [],
-                };
-              });
-              return [...updatedTalents];
-            });
-      });
-    } catch (error) {
-      dispatch(setLoading(false));
-      dispatch(
-        setAlert({
-          show: true,
-          type: ALERT_TYPE.ERROR,
-          msg: ERROR_MSG,
-        })
-      );
-    }
-  };
-
-  const showManageJob = (jobId) => {
-    setOpenManageJobDialog(true);
-    getTalentMyJobStatusCount(jobId);
-    setjobId(jobId);
-  };
 
   const getJobList = async (lastkeyy) => {
     console.log("LAST KEY", lastkeyy);
@@ -273,25 +147,11 @@ export default function ActiveJobs() {
             }}
           >
             {allJobs?.map((job, index) => (
-              <JobCard
-                key={index}
-                index={job.job_id}
-                jobContent={job}
-                onManageTalent={onHandleManageTalent}
-                showManageJob={() => showManageJob(job.job_id)}
-              />
+              <JobCard key={index} index={job.job_id} jobContent={job} />
             ))}
           </Box>
         </InfiniteScroll>
       </Grid>
-      <CustomDialog
-        show={openManageJobDialog}
-        onDialogClose={onHandleClose}
-        // title={i18n["manageJob.title"]}
-        isTalentMyJobsDialog
-      >
-        <ManageJob jobId={jobId} talents={talents} setTalents={setTalents} />
-      </CustomDialog>
     </Box>
   );
 }

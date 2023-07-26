@@ -20,6 +20,7 @@ import {
   uploadCv,
   uploadPortfolio,
   getSalary,
+  addBasicData,
 } from "../../../redux/candidate/myCvSlice";
 
 import { setAlert, setLoading } from "../../../redux/configSlice";
@@ -32,6 +33,8 @@ import {
   getRoleTypes,
   getWorkSetup,
 } from "../../../redux/employer/postJobSlice";
+import { getCVBasics } from "../../../redux/candidate/myCVNew";
+import StyledButton from "../../common/StyledButton";
 
 const marks = [
   {
@@ -153,16 +156,6 @@ function noticeValue(value) {
   return value / 10;
 }
 
-const StyledButton = styled(Button)(({ theme }) => ({
-  marginRight: "24px",
-  fontSize: "14px",
-  width: "150px",
-  border: `2px solid ${theme.palette.redButton100.main}`,
-  "& .MuiSvgIcon-root": {
-    fontSize: "16px",
-  },
-}));
-
 const BASIC = {
   current_job_title_id: "",
   dream_job_title_id: "",
@@ -176,6 +169,7 @@ const BASIC = {
   currency_id: "",
   portfolio_link: "",
   work_setup: "",
+  experience: [],
 };
 
 const SALARY_OBJ = {
@@ -184,25 +178,75 @@ const SALARY_OBJ = {
   step: 0,
 };
 
-export default function TheBasics({ onSubmit, basic, errors }) {
-  const i18n = locale.en;
+const i18n = locale.en;
+
+export default function TheBasics({ changeStep }) {
+  const fileAccept = "application/pdf, application/doc, application/docx";
+
   const dispatch = useDispatch();
   const hiddenFileInput = useRef(null);
   const hiddenFileInput2 = useRef(null);
   const [basicData, setBasicData] = useState(BASIC);
-  // const [basicData, setBasicData] = useState(JSON.parse(getLocalStorage('basicData')) || [BASIC])
-  const [cvName, setCvName] = useState(
-    getLocalStorage("cvName") || "No file chosen"
-  );
-  const [portfolioName, setPortfolioName] = useState(
-    getLocalStorage("portfolioName") || "No file chosen"
-  );
   const [salaryObj, setSalaryObj] = useState(SALARY_OBJ);
   const [rangeValue, setRangeValue] = useState([0, 20]);
+  const [expRange, setExpRange] = useState([0, 1]);
   const [workSetup, setWorkSetup] = useState([]);
   const [roleTypes, setRoleTypes] = useState([]);
+  const [errors, setErrors] = useState([]);
+  const [cvName, setCvName] = useState("No file chosen");
+  const [portfolioName, setPortfolioName] = useState("No file chosen");
 
-  // const [Rangevalue, setRangeValue] = useState([0, 40]);
+  const handleSaveButton = async () => {
+    try {
+      console.log("BASIC DATA", basicData);
+      console.log(cvName);
+      if (cvName == "No file chosen") {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: "Please Upload Your CV First",
+          })
+        );
+        return;
+      }
+      const { payload } = await dispatch(addBasicData(basicData));
+      // console.log(payload);
+      if (payload?.status == "success") {
+        // setLocalStorage('basicData', JSON.stringify(basicData))
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.SUCCESS,
+            msg: "Basic data added successfully!",
+          })
+        );
+        changeStep(2);
+        setErrors([]);
+      } else if (payload?.status == "error") {
+        // console.log(payload?.data?.message);
+        console.log("ERROR", payload);
+        setErrors(payload?.message);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: ERROR_MSG,
+        })
+      );
+    }
+  };
+
   const {
     titles,
     industries,
@@ -228,6 +272,7 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       ]);
       dispatch(setLoading(false));
     } catch (error) {
+      console.log(error);
       dispatch(setLoading(false));
       dispatch(
         setAlert({
@@ -262,24 +307,48 @@ export default function TheBasics({ onSubmit, basic, errors }) {
     }
   };
 
+  const getCVBasicData = async () => {
+    const { payload } = await dispatch(getCVBasics());
+    if (payload?.status == "success" || payload?.status == "sucess") {
+      if (payload?.message == "cv basic is not completed") {
+        setBasicData(BASIC);
+        return;
+      }
+
+      const basic = payload?.data;
+      basic.industries = basic?.industry_id;
+      const salary = basic?.salary?.map((item) => {
+        return basic?.employment_type != "freelance" ? item / 1000 : item / 5;
+      });
+
+      const experience = basic.experience.map((item) => {
+        return item * 10;
+      });
+
+      setBasicData(basic);
+      setExpRange(experience);
+      setRangeValue(salary == "undefined" ? [] : salary);
+      setCvName(basic.cv_link);
+    } else if (payload?.status == "error") {
+      // dispatch(
+      //   setAlert({
+      //     show: true,
+      //     type: ALERT_TYPE.ERROR,
+      //     msg: "Fill the basic details",
+      //   })
+      // );
+      return;
+    } else {
+      return;
+    }
+    dispatch(setLoading(false));
+  };
+
   useEffect(() => {
     getAllData();
+    getCVBasicData();
     getWorkSet();
   }, []);
-
-  useEffect(() => {
-    if (!isEmpty(basic)) {
-      setBasicData(basic);
-
-      // const cvLinkArray = basic.cv_link?.split("/");
-      // const cvIndex = cvLinkArray?.length - 1;
-      // setCvName(cvLinkArray[cvIndex]);
-    }
-  }, [basic]);
-
-  // function valuetext(value) {
-  //   return `${value}°C`;
-  // }
 
   const handleFileClick = () => {
     hiddenFileInput.current.click();
@@ -295,7 +364,6 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       const { payload } = await dispatch(uploadCv(formData));
       if (payload?.status == "success") {
         setCvName(event.target.files[0].name);
-        setLocalStorage("cvName", event.target.files[0].name);
         dispatch(
           setAlert({
             show: true,
@@ -317,13 +385,21 @@ export default function TheBasics({ onSubmit, basic, errors }) {
     }
   };
   const handlePortChange = async (event) => {
+    const selectedFile = event.target.files[0];
+    console.log(selectedFile);
+    if (!selectedFile) {
+      return;
+    }
+    console.log(event.target.files[0]);
     const formData = new FormData();
     formData.append("portfolio", event.target.files[0]);
+    setTimeout(() => {
+      console.log("FORM DATA", formData);
+    }, 1000);
     try {
       const { payload } = await dispatch(uploadPortfolio(formData));
       if (payload?.status == "success") {
         setPortfolioName(event.target.files[0].name);
-        setLocalStorage("portfolioName", event.target.files[0].name);
         dispatch(
           setAlert({
             show: true,
@@ -348,27 +424,33 @@ export default function TheBasics({ onSubmit, basic, errors }) {
   const handleRangeSlider = (event, newValue) => {
     setRangeValue(newValue);
     console.log(event, newValue);
-    let newArr = rangeValue?.map((val) => val * 1000);
+    let newArr = newValue?.map((val) => val * 1000);
     console.log(newArr);
     const newBasicData = {
       ...basicData,
       [event.target.name]: newArr,
     };
-
+    console.log(newBasicData);
+    const filteredErrors = errors?.filter(
+      (item) => item.key != event.target.name
+    );
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const handleRangeSlider2 = (event, newValue) => {
     setRangeValue(newValue);
-    let newArr = rangeValue.map((val) => val * 5);
+    let newArr = newValue?.map((val) => val * 5);
     const newBasicData = {
       ...basicData,
       [event.target.name]: newArr,
     };
 
+    const filteredErrors = errors?.filter(
+      (item) => item.key != event.target.name
+    );
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const handleWorkSetup = (event) => {
@@ -382,7 +464,6 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       [name || id]: workSetup.find((work) => work.id == value).name,
     };
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const expHandleChange = (event) => {
@@ -396,8 +477,11 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       ...basicData,
       [name]: value / 10,
     };
+    const filteredErrors = errors?.filter(
+      (item) => item.key != event.target.name
+    );
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
   const noticeHandleChange = (event) => {
     const {
@@ -410,8 +494,9 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       ...basicData,
       [name]: value / 10,
     };
+    const filteredErrors = errors?.filter((item) => item.key != name);
+    setErrors(filteredErrors);
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const handleChange = (event) => {
@@ -428,13 +513,12 @@ export default function TheBasics({ onSubmit, basic, errors }) {
           ? salary?.find((sal) => sal?.max == value).salary_id
           : value,
     };
-
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const handleAutoComplete = (event, newValue, id) => {
     let newBasicData = {};
+
     if (typeof newValue === "string") {
       newBasicData = {
         ...basicData,
@@ -453,7 +537,6 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       };
     }
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const handleJobRoleChange = (event) => {
@@ -468,17 +551,15 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       [name]: roleTypes.find((role) => role.id == value).name,
     };
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const handleMultipleAutoComplete = (event, newValue, id) => {
     let newBasicData = {};
     newBasicData = {
       ...basicData,
-      [id]: newValue.map((val) => val?.inputValue || val?.id || val),
+      [id]: newValue?.map((val) => val?.inputValue || val?.id || val),
     };
     setBasicData(newBasicData);
-    onSubmit("basic", newBasicData);
   };
 
   const getIndValue = () => {
@@ -505,6 +586,7 @@ export default function TheBasics({ onSubmit, basic, errors }) {
       const {
         payload: { data },
       } = await dispatch(getSalary(currency_id));
+      console.log(data);
       setSalaryObj({
         min: data[0].max,
         max: data[data.length - 1].max,
@@ -524,39 +606,41 @@ export default function TheBasics({ onSubmit, basic, errors }) {
   };
   useEffect(() => {
     if (basicData.currency_id) {
+      console.log(basicData.currency_id);
       getSalaryData(basicData.currency_id);
     }
   }, [basicData.currency_id]);
 
   return (
-    <Box sx={{ ml: 3 }}>
+    <Box>
       <Typography
         sx={{
           fontSize: "20px",
           fontWeight: 700,
           ml: 1,
-          mb: 2,
         }}
       >
         {CV_STEPS[0]}
       </Typography>
       <Box sx={{ mb: 3 }}>
         <input
-          accept="application/pdf, application/doc, application/docx"
+          accept={fileAccept}
           ref={hiddenFileInput}
           type="file"
           onChange={handleFileChange}
           style={{ display: "none" }}
+          required
         />
         <StyledButton
           onClick={handleFileClick}
           variant="outlined"
           color="redButton100"
+          sx={{ mt: 1 }}
         >
           {i18n["myCV.uploadCV"]}
         </StyledButton>
         <StyledButton
-          sx={{ opacity: 0.5 }}
+          sx={{ opacity: 0.5, mt: 1 }}
           variant="contained"
           color="redButton100"
         >
@@ -588,6 +672,7 @@ export default function TheBasics({ onSubmit, basic, errors }) {
             >
               {i18n["myCV.currentJobTitleLabel"]}
             </InputLabel>
+            {console.log(basicData)}
             <AutoComplete
               id="current_job_title_id"
               value={
@@ -595,23 +680,29 @@ export default function TheBasics({ onSubmit, basic, errors }) {
                   (title) => title.id == basicData.current_job_title_id
                 ) || basicData.current_job_title_id
               }
+              // defaultValue={basicData.current_job_title_id}
               onChange={handleAutoComplete}
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.currentJobTitle"]}
               data={titles}
+              showAddOption={true}
             ></AutoComplete>
-            {errors?.find((error) => error.key == "current_job_title_id") && (
-              <Typography color={"red !important"}>
-                {`*${
-                  errors?.find((error) => error.key == "current_job_title_id")
-                    .message
-                }`}
-              </Typography>
-            )}
+            {!titles?.find(
+              (title) => title.id == basicData.current_job_title_id
+            ) &&
+              !basicData.current_job_title_id &&
+              errors?.find((error) => error.key == "current_job_title_id") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "current_job_title_id")
+                      .message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
-              htmlFor="current_job_title_id"
+              htmlFor="dream_job_title_id"
               sx={{
                 color: "black",
                 paddingLeft: "10px",
@@ -633,74 +724,87 @@ export default function TheBasics({ onSubmit, basic, errors }) {
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.dreamNextJobTitle"]}
               data={titles}
+              showAddOption={true}
             ></AutoComplete>
-            {errors?.find((error) => error.key == "dream_job_title_id") && (
+            {!titles?.find(
+              (title) => title.id == basicData.dream_job_title_id
+            ) &&
+              !basicData.dream_job_title_id &&
+              errors?.find((error) => error.key == "dream_job_title_id") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "dream_job_title_id")
+                      .message
+                  }`}
+                </Typography>
+              )}
+          </Box>
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <InputLabel
+            htmlFor="industries"
+            sx={{
+              color: "black",
+              paddingLeft: "10px",
+              paddingBottom: "2px",
+              fontSize: "14px",
+              fontWeight: 500,
+            }}
+          >
+            {i18n["myCV.industriesLabel"]}
+          </InputLabel>
+          <AutoComplete
+            multiple={true}
+            id="industries"
+            value={getIndValue()}
+            onChange={handleMultipleAutoComplete}
+            sx={{ width: "97%", display: "inline-table" }}
+            placeholder={i18n["myCV.preferredIndustries"]}
+            data={industries}
+          ></AutoComplete>
+          {getIndValue() == "" &&
+            errors?.find((error) => error.key == "industries") && (
               <Typography color={"red !important"}>
                 {`*${
-                  errors?.find((error) => error.key == "dream_job_title_id")
-                    .message
+                  errors?.find((error) => error.key == "industries").message
                 }`}
               </Typography>
             )}
-          </Box>
         </Box>
-        <InputLabel
-          htmlFor="industries"
-          sx={{
-            color: "black",
-            paddingLeft: "10px",
-            paddingBottom: "2px",
-            fontSize: "14px",
-            fontWeight: 500,
-          }}
-        >
-          {i18n["myCV.industriesLabel"]}
-        </InputLabel>
-        <AutoComplete
-          multiple={true}
-          id="industries"
-          value={getIndValue()}
-          onChange={handleMultipleAutoComplete}
-          sx={{ width: "97%" }}
-          placeholder={i18n["myCV.preferredIndustries"]}
-          data={industries}
-        ></AutoComplete>
-        {errors?.find((error) => error.key == "industries") && (
-          <Typography color={"red !important"} sx={{ mb: 3 }}>
-            {`*${errors?.find((error) => error.key == "industries").message}`}
-          </Typography>
-        )}
-        <InputLabel
-          htmlFor="tags"
-          sx={{
-            color: "black",
-            paddingLeft: "10px",
-            paddingBottom: "2px",
-            fontSize: "14px",
-            fontWeight: 500,
-          }}
-        >
-          {i18n["myCV.skillsLabel"]}
-        </InputLabel>
-        <AutoComplete
-          multiple={true}
-          id="tags"
-          value={getSkillValue()}
-          onChange={handleMultipleAutoComplete}
-          sx={{ width: "97%" }}
-          placeholder={i18n["myCV.skills"]}
-          data={skills}
-        ></AutoComplete>
-        {errors?.find((error) => error.key == "tags") && (
-          <Typography color={"red !important"} sx={{ mb: 3 }}>
-            {`*${errors?.find((error) => error.key == "tags").message}`}
-          </Typography>
-        )}
+        <Box sx={{ mb: 3 }}>
+          <InputLabel
+            htmlFor="tags"
+            sx={{
+              color: "black",
+              paddingLeft: "10px",
+              paddingBottom: "2px",
+              fontSize: "14px",
+              fontWeight: 500,
+            }}
+          >
+            {i18n["myCV.skillsLabel"]}
+          </InputLabel>
+          <AutoComplete
+            multiple={true}
+            id="tags"
+            value={getSkillValue()}
+            onChange={handleMultipleAutoComplete}
+            sx={{ width: "97%", display: "inline-table" }}
+            placeholder={i18n["myCV.skills"]}
+            data={skills}
+          ></AutoComplete>
+          {getSkillValue() == "" &&
+            errors?.find((error) => error.key == "tags") && (
+              <Typography color={"red !important"}>
+                {`*${errors?.find((error) => error.key == "tags").message}`}
+              </Typography>
+            )}
+        </Box>
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
           <Box sx={{ width: "100%" }}>
             <InputLabel
-              htmlFor="experience_id"
+              htmlFor="experience"
               sx={{
                 color: "black",
                 paddingLeft: "10px",
@@ -711,14 +815,6 @@ export default function TheBasics({ onSubmit, basic, errors }) {
             >
               {i18n["myCV.yearsOfExperienceLabel"]}
             </InputLabel>
-            {/* <SelectMenu
-            name="experience_id"
-            value={basicData.experience_id}
-            onHandleChange={handleChange}
-            options={experiences}
-            sx={{ width: "94%" }}
-            placeholder={i18n["myCV.yearsWorkExperience"]}
-          /> */}
             <Slider
               name="experience_id"
               aria-label="Custom marks"
@@ -737,10 +833,10 @@ export default function TheBasics({ onSubmit, basic, errors }) {
               marks={marks}
               sx={{ width: "88%", ml: 2 }}
             />
-            {errors?.find((error) => error.key == "experience_id") && (
+            {errors?.find((error) => error.key == "experience") && (
               <Typography color={"red !important"}>
                 {`*${
-                  errors?.find((error) => error.key == "experience_id").message
+                  errors?.find((error) => error.key == "experience").message
                 }`}
               </Typography>
             )}
@@ -758,19 +854,9 @@ export default function TheBasics({ onSubmit, basic, errors }) {
             >
               {i18n["myCV.noticePeriodLabel"]}
             </InputLabel>
-            {/* <SelectMenu
-            name="notice_period_id"
-            value={basicData.notice_period_id}
-            onHandleChange={handleChange}
-            options={noticePeriod}
-            sx={{ width: "94%" }}
-            placeholder={i18n["myCV.noticePeriod"]}
-          /> */}
             <Slider
               aria-label="Custom marks"
               name="notice_period_id"
-              // defaultValue={0}
-              // value={basicData.notice_period_id*10}
               value={
                 noticePeriod.find(
                   (val) => val.id === basicData.notice_period_id
@@ -780,11 +866,7 @@ export default function TheBasics({ onSubmit, basic, errors }) {
               getAriaValueText={noticeValue}
               onChange={noticeHandleChange}
               step={20}
-              sx={{ width: "90%", ml: 2 }}
-              // min={0}
-              // max={10}
-              // valueLabelDisplay="auto"
-              // valueLabelFormat={noticeValue}
+              sx={{ width: "88%", ml: 2 }}
               marks={noticePeriodMarks}
             />
             {errors?.find((error) => error.key == "notice_period_id") && (
@@ -819,14 +901,15 @@ export default function TheBasics({ onSubmit, basic, errors }) {
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.highestQualificationLevel"]}
             />
-            {errors?.find((error) => error.key == "qualification_level") && (
-              <Typography color={"red !important"}>
-                {`*${
-                  errors?.find((error) => error.key == "qualification_level")
-                    .message
-                }`}
-              </Typography>
-            )}
+            {!basicData.qualification_level &&
+              errors?.find((error) => error.key == "qualification_level") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "qualification_level")
+                      .message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -849,14 +932,15 @@ export default function TheBasics({ onSubmit, basic, errors }) {
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.preferredWorkType"]}
             />
-            {errors?.find((error) => error.key == "employment_type") && (
-              <Typography color={"red !important"}>
-                {`*${
-                  errors?.find((error) => error.key == "employment_type")
-                    .message
-                }`}
-              </Typography>
-            )}
+            {!basicData.employment_type &&
+              errors?.find((error) => error.key == "employment_type") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "employment_type")
+                      .message
+                  }`}
+                </Typography>
+              )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
@@ -881,13 +965,14 @@ export default function TheBasics({ onSubmit, basic, errors }) {
               sx={{ width: "94%" }}
               placeholder={i18n["myCV.preferredCurrency"]}
             />
-            {errors?.find((error) => error.key == "currency_id") && (
-              <Typography color={"red !important"}>
-                {`*${
-                  errors?.find((error) => error.key == "currency_id").message
-                }`}
-              </Typography>
-            )}
+            {!basicData?.currency_id &&
+              errors?.find((error) => error.key == "currency_id") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "currency_id").message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -904,12 +989,15 @@ export default function TheBasics({ onSubmit, basic, errors }) {
                 ? i18n["myCV.requiredSalaryRangeLabel2"]
                 : i18n["myCV.requiredSalaryRangeLabel"]}
             </InputLabel>
+            {console.log(salaryObj)}
             <Slider
+              disableSwap
+              sx={{ width: "89%", ml: 1 }}
               disabled={salaryObj.step == 0}
               name="salary"
               getAriaLabel={() => "Temperature range"}
               value={rangeValue}
-              step={basicData.employment_type == "freelance" && 1}
+              // step={basicData.employment_type == "freelance" && 1}
               onChange={
                 basicData.employment_type == "freelance"
                   ? handleRangeSlider2
@@ -959,16 +1047,17 @@ export default function TheBasics({ onSubmit, basic, errors }) {
               value={basicData.work_setup}
               onHandleChange={handleWorkSetup}
               options={workSetup}
-              sx={{ width: "95%" }}
+              sx={{ width: "94%" }}
               placeholder={i18n["postAJob.workSetupPlaceholder"]}
             />
-            {errors?.find((error) => error.key == "work_setup") && (
-              <Typography color={"red !important"}>
-                {`*${
-                  errors?.find((error) => error.key == "work_setup").message
-                }`}
-              </Typography>
-            )}
+            {!basicData.work_setup &&
+              errors?.find((error) => error.key == "work_setup") && (
+                <Typography color={"red !important"}>
+                  {`*${
+                    errors?.find((error) => error.key == "work_setup").message
+                  }`}
+                </Typography>
+              )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -989,19 +1078,20 @@ export default function TheBasics({ onSubmit, basic, errors }) {
                   id="portfolio_link"
                   value={basicData.portfolio_link}
                   onChange={handleChange}
-                  sx={{ width: "100%" }}
+                  sx={{ width: "94%" }}
                   placeholder={i18n["myCV.portfolioLink"]}
                 />
-                {errors?.find((error) => error.key == "portfolio_link") && (
-                  <Typography color={"red !important"}>
-                    {`*${
-                      errors?.find((error) => error.key == "portfolio_link")
-                        .message
-                    }`}
-                  </Typography>
-                )}
+                {!basicData.portfolio_link &&
+                  errors?.find((error) => error.key == "portfolio_link") && (
+                    <Typography color={"red !important"}>
+                      {`*${
+                        errors?.find((error) => error.key == "portfolio_link")
+                          .message
+                      }`}
+                    </Typography>
+                  )}
                 <input
-                  accept="application/pdf, application/doc, application/docx"
+                  accept={fileAccept}
                   ref={hiddenFileInput2}
                   type="file"
                   onChange={handlePortChange}
@@ -1013,8 +1103,8 @@ export default function TheBasics({ onSubmit, basic, errors }) {
                   color="redButton100"
                   sx={{
                     position: "absolute",
-                    top: "32%",
-                    right: -25,
+                    top: "10%",
+                    right: 12,
                     transform: "translateY(-50%)",
                     "@media (max-width: 600px)": {
                       fontSize: "12px",
@@ -1038,11 +1128,21 @@ export default function TheBasics({ onSubmit, basic, errors }) {
             </Box>
           </Box>
         </Box>
-        {/* <Box sx={{ display: 'flex', mb: 3 }}>
-                 
-                    <InputBox id="portfolio_link" value={basicData.portfolio_link} onChange={handleChange} sx={{ width: '47%' }} placeholder={i18n['myCV.portfolioLink']} />
-                    <StyledButton variant="outlined" color="redButton100">{i18n['myCV.addPortfolio']}</StyledButton>
-                </Box> */}
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          pt: 5,
+        }}
+      >
+        <StyledButton
+          onClick={handleSaveButton}
+          variant="outlined"
+          color="redButton100"
+        >
+          {i18n["myCV.quickSave"]}
+        </StyledButton>
       </Box>
     </Box>
   );

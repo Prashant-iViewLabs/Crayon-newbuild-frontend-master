@@ -167,6 +167,8 @@ export default function CultureAdd({ changeStep }) {
         screen_questions: [...cultureData.screen_questions],
         traits: [...cultureData.traits],
       };
+      console.log(culturePayload);
+      console.log(cultureData);
       const { payload } = await dispatch(addCultureData(culturePayload));
       if (payload?.status == "success") {
         dispatch(
@@ -230,7 +232,7 @@ export default function CultureAdd({ changeStep }) {
     };
 
     const filteredErrors = errors?.filter((item) => item.key != name);
-    // setErrors(filteredErrors);
+    setErrors(filteredErrors);
     setCultureData(newCultureData);
   };
 
@@ -239,13 +241,14 @@ export default function CultureAdd({ changeStep }) {
   };
 
   const handleMultipleAutoComplete = (event, newValue, id) => {
+    console.log(newValue.name, id);
     if (newValue.length <= 5) {
       let newCultureData = {
         ...cultureData,
         [id]: newValue.map((val) => val?.inputValue || val?.trait_id || val),
       };
       const filteredErrors = errors?.filter((item) => item.key != id);
-      // setErrors(filteredErrors);
+      setErrors(filteredErrors);
       setCultureData(newCultureData);
     } else {
       newValue.splice(5, 1);
@@ -264,6 +267,7 @@ export default function CultureAdd({ changeStep }) {
       target: { value },
       target: { name },
     } = event;
+    // console.log(value, name);
   };
 
   const getTraitsValue = () => {
@@ -307,6 +311,7 @@ export default function CultureAdd({ changeStep }) {
       [id]: value,
       job_id: Number(jobId),
     };
+    console.log(newCultureData);
     setCultureData(newCultureData);
   };
 
@@ -379,15 +384,14 @@ export default function CultureAdd({ changeStep }) {
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.preferredDominantPersonality"]}
             />
-            {!cultureData?.jobDetails?.primary_personality &&
-              errors?.find((error) => error.key == "primary_personality") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "primary_personality")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "primary_personality") && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find((error) => error.key == "primary_personality")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -411,15 +415,14 @@ export default function CultureAdd({ changeStep }) {
               sx={{ width: "95%" }}
               placeholder={i18n["postAJob.preferredShadowPersonality"]}
             />
-            {!cultureData?.jobDetails?.shadow_personality &&
-              errors?.find((error) => error.key == "shadow_personality") && (
-                <Typography color={"red"}>
-                  {`*${
-                    errors?.find((error) => error.key == "shadow_personality")
-                      .message
-                  }`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "shadow_personality") && (
+              <Typography color={"red"}>
+                {`*${
+                  errors?.find((error) => error.key == "shadow_personality")
+                    .message
+                }`}
+              </Typography>
+            )}
           </Box>
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
@@ -449,12 +452,11 @@ export default function CultureAdd({ changeStep }) {
               limitTags={5}
             ></AutoComplete>
 
-            {getTraitsValue() == "" &&
-              errors?.find((error) => error.key == "traits") && (
-                <Typography color={"red"}>
-                  {`*${errors?.find((error) => error.key == "traits").message}`}
-                </Typography>
-              )}
+            {errors?.find((error) => error.key == "traits") && (
+              <Typography color={"red"}>
+                {`*${errors?.find((error) => error.key == "traits").message}`}
+              </Typography>
+            )}
           </Box>
           <Box sx={{ width: "100%" }}>
             <InputLabel
@@ -519,6 +521,7 @@ export default function CultureAdd({ changeStep }) {
             }`}
           </Typography>
         )}
+        {console.log(cultureData?.screen_questions)}
         {cultureData?.screen_questions?.length > 0 &&
           cultureData?.screen_questions?.map((question, index) =>
             index < 5 ? (
