@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Slider from "@mui/material/Slider"
 import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
 import { uploadProfilePic } from "../../../redux/candidate/myProfileSlice";
@@ -13,6 +14,9 @@ import { useTheme } from "@emotion/react";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import getCroppedImg from "../../../utils/cropImage";
+
+import ZoomOutIcon from '@mui/icons-material/Remove';
+import ZoomInIcon from '@mui/icons-material/Add';
 import LinearProgress, {
   linearProgressClasses,
 } from "@mui/material/LinearProgress";
@@ -514,6 +518,20 @@ export default function ProfileCard() {
       document.body.removeEventListener("click", handleClickOutside);
     };
   }, []);
+
+
+  const handleZoom = (direction) => {
+    const step = 0.5;
+    let newZoom = zoom;
+
+    if (direction === "+") {
+      newZoom = Math.min(zoom + step, 3); // Limit zoom to maximum 3x
+    } else if (direction === "-") {
+      newZoom = Math.max(zoom - step, 1); // Limit zoom to minimum 1x
+    }
+
+    setZoom(newZoom);
+  };
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Box sx={{ display: "flex", flexDirection: "column", width: "15%" }}>
@@ -871,7 +889,7 @@ export default function ProfileCard() {
             <Box
               sx={{
                 position: "relative",
-                height: "100%",
+                height: "80%",
               }}
             >
               <Cropper
@@ -880,11 +898,41 @@ export default function ProfileCard() {
                 zoom={zoom}
                 aspect={1}
                 cropShape="round"
-                showGrid={false}
+                showGrid={true}
                 onCropChange={setCrop}
-                onZoomChange={setZoom}
+                // onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
               />
+            </Box>
+            <Box sx={{
+              position: "relative",
+              height: "20%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center"
+            }}>
+              <Button variant="text" onClick={() => handleZoom("-")}><ZoomOutIcon /></Button>
+              <Box className="controls" sx={{
+                width: 200,
+                mx: 3
+              }} >
+                <Slider
+                  defaultValue={0}
+                  size="small"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.5}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => {
+                    setZoom(e.target.value)
+                  }}
+                  className="zoom-range"
+                />
+
+              </Box>
+              <Button variant="text" onClick={() => handleZoom("+")}><ZoomInIcon /></Button>
+              <Button variant="text" onClick={() => setZoom(1)}>Reset</Button>
             </Box>
           </CustomDialog>
         </StyledAccordion>
