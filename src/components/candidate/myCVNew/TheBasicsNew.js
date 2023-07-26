@@ -623,13 +623,12 @@ export default function TheBasics({ changeStep }) {
   }, [basicData.currency_id]);
 
   return (
-    <Box sx={{ ml: 3 }}>
+    <Box >
       <Typography
         sx={{
           fontSize: "20px",
           fontWeight: 700,
           ml: 1,
-          mb: 2,
         }}
       >
         {CV_STEPS[0]}
@@ -647,11 +646,15 @@ export default function TheBasics({ changeStep }) {
           onClick={handleFileClick}
           variant="outlined"
           color="redButton100"
+          sx={{
+            mt: 1
+          }}
         >
           {i18n["myCV.uploadCV"]}
         </StyledButton>
         <StyledButton
-          sx={{ opacity: 0.5 }}
+          sx={{ opacity: 0.5, 
+          mt: 1 }}
           variant="contained"
           color="redButton100"
         >

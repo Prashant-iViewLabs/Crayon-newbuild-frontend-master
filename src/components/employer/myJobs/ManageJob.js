@@ -33,7 +33,7 @@ const StyledBox = (props) => {
   return (
     <Box
       sx={{
-        width: 1,
+        // width: 1,
         height: 37,
         backgroundColor: theme.palette[color].main,
         borderRadius: "0 0 20px 20px",
@@ -288,7 +288,7 @@ export default function ManageJob({ jobId, talents, setTalents }) {
                     flex: "1 1 0px",
                     margin: "8px",
                     minWidth: "300px",
-                    padding: "20px",
+                    // padding: "20px",
                   }}
                 >
                   <StyledBox

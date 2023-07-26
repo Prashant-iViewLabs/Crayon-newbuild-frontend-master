@@ -28,6 +28,9 @@ import ManageJob from "./ManageJob";
 import { convertDatetimeAgo } from "../../../utils/DateTime";
 import { Tooltip } from "@mui/material";
 import ManageButtonMenu from "./ManageButtonMenu";
+
+import DOMPurify from 'dompurify';
+
 const label1 = "applicants";
 const label2 = "shortlisted";
 const label3 = "interviews";
@@ -79,6 +82,12 @@ export default function MyJobsCard({ index, job, showManageJob }) {
   const handleStar = () => {
     setIsStarSelected(!isStar);
   };
+
+  function createMarkup(html) {
+    return {
+      __html: DOMPurify.sanitize(html)
+    }
+  }
   return (
     <CustomCard
       handleMouseEnter={() => setIsHovered(true)}
@@ -282,18 +291,18 @@ export default function MyJobsCard({ index, job, showManageJob }) {
         <Box
           sx={
             job?.industry?.length <= 1 &&
-            job?.type !== "" &&
-            job?.work_setup !== ""
+              job?.type !== "" &&
+              job?.work_setup !== ""
               ? {
-                  width: "100%",
-                  display: "flex",
-                  overflow: "hidden",
-                }
+                width: "100%",
+                display: "flex",
+                overflow: "hidden",
+              }
               : {
-                  width: "100%",
-                  display: "flex",
-                  overflow: "hidden",
-                }
+                width: "100%",
+                display: "flex",
+                overflow: "hidden",
+              }
           }
         >
           {arrSlider
@@ -325,7 +334,16 @@ export default function MyJobsCard({ index, job, showManageJob }) {
           color={theme.palette.black100}
           letterSpacing="0.25px"
         >
-          {job?.description}
+          <Box
+            mt="12px"
+            mb={1}
+            color={theme.palette.black100}
+            letterSpacing="0.25px"
+            className="preview"
+            m={0}
+            p={0}
+            dangerouslySetInnerHTML={createMarkup(job?.description)}>
+          </Box>
         </TextWrapper>
       </Grid>
 
@@ -360,17 +378,17 @@ export default function MyJobsCard({ index, job, showManageJob }) {
         <Box
           sx={
             job?.traits?.length <= 1 &&
-            job?.primaryName !== "" &&
-            job?.shadowName !== ""
+              job?.primaryName !== "" &&
+              job?.shadowName !== ""
               ? {
-                  width: "65%",
-                  display: "flex",
-                }
+                width: "65%",
+                display: "flex",
+              }
               : {
-                  width: "65%",
-                  display: "flex",
-                  overflow: "hidden",
-                }
+                width: "65%",
+                display: "flex",
+                overflow: "hidden",
+              }
           }
         >
           {arrSlider2
@@ -453,7 +471,7 @@ export default function MyJobsCard({ index, job, showManageJob }) {
         display="flex"
         padding="0 18px 8px 18px"
         justifyContent="space-between"
-        // alignItems="center"
+      // alignItems="center"
       >
         {/* <Box
           sx={{

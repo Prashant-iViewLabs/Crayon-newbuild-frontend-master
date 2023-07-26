@@ -596,28 +596,28 @@ export default function AllTalentCard({
             <StyledHR></StyledHR>
             {talentContent?.candidate_profile?.candidate_info
               ?.employment_type != null && (
-              <SmallButton
-                color="blueButton700"
-                label={
-                  talentContent?.candidate_profile?.candidate_info
-                    ?.employment_type
-                }
-                mr="4px"
-                fontSize="12px"
-              ></SmallButton>
-            )}
+                <SmallButton
+                  color="blueButton700"
+                  label={
+                    talentContent?.candidate_profile?.candidate_info
+                      ?.employment_type
+                  }
+                  mr="4px"
+                  fontSize="12px"
+                ></SmallButton>
+              )}
 
             {talentContent?.candidate_profile?.candidate_info?.work_setup !=
               null && (
-              <SmallButton
-                color="blueButton700"
-                label={
-                  talentContent?.candidate_profile?.candidate_info?.work_setup
-                }
-                mr="8px"
-                fontSize="12px"
-              ></SmallButton>
-            )}
+                <SmallButton
+                  color="blueButton700"
+                  label={
+                    talentContent?.candidate_profile?.candidate_info?.work_setup
+                  }
+                  mr="8px"
+                  fontSize="12px"
+                ></SmallButton>
+              )}
           </Box>
 
           <Box className="summaryBoxContent">
@@ -964,11 +964,12 @@ export default function AllTalentCard({
                   (item) => {
                     return (
                       <SmallButton
-                        minWidth="10px"
+                        justifyContent={"flex-start"}
                         height={18}
                         color="grayButton"
                         borderRadius="5px"
-                        label={item?.qualification?.name}
+                        label={item?.qualification?.name
+                        }
                         mr="4px"
                       ></SmallButton>
                     );
@@ -1308,35 +1309,35 @@ export default function AllTalentCard({
                   >
                     {talentContent?.candidate_profile?.candidate_info?.primary
                       ?.name != null && (
-                      <SmallButton
-                        fontWeight={500}
-                        minWidth="10px"
-                        height={25}
-                        color="purpleButton"
-                        borderRadius="5px"
-                        label={
-                          talentContent?.candidate_profile?.candidate_info
-                            ?.primary?.name
-                        }
-                        mr="4px"
-                      ></SmallButton>
-                    )}
+                        <SmallButton
+                          fontWeight={500}
+                          minWidth="10px"
+                          height={25}
+                          color="purpleButton"
+                          borderRadius="5px"
+                          label={
+                            talentContent?.candidate_profile?.candidate_info
+                              ?.primary?.name
+                          }
+                          mr="4px"
+                        ></SmallButton>
+                      )}
 
                     {talentContent?.candidate_profile?.candidate_info?.shadow
                       ?.name != null && (
-                      <SmallButton
-                        fontWeight={500}
-                        minWidth="10px"
-                        height={25}
-                        color="brownButton"
-                        borderRadius="5px"
-                        label={
-                          talentContent?.candidate_profile?.candidate_info
-                            ?.shadow?.name
-                        }
-                        mr="4px"
-                      ></SmallButton>
-                    )}
+                        <SmallButton
+                          fontWeight={500}
+                          minWidth="10px"
+                          height={25}
+                          color="brownButton"
+                          borderRadius="5px"
+                          label={
+                            talentContent?.candidate_profile?.candidate_info
+                              ?.shadow?.name
+                          }
+                          mr="4px"
+                        ></SmallButton>
+                      )}
                   </Box>
                   <Box>
                     {talentContent?.candidate_profile?.candidate_traits
@@ -1918,6 +1919,6 @@ export default function AllTalentCard({
           </Box>
         </Box>
       </AccordionDetails>
-    </StyledAccordion>
+    </StyledAccordion >
   );
 }

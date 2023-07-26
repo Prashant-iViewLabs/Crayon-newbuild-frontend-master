@@ -12,6 +12,7 @@ export default function SmallButton({
   textColor,
   height = 20,
   startIconMargin,
+  justifyContent,
   onClick,
   value,
   ...props
@@ -28,6 +29,7 @@ export default function SmallButton({
         endIcon={endIcon}
         onClick={onClick}
         sx={{
+          justifyContent: justifyContent,
           fontSize: 12,
           fontWeight: 300,
           letterSpacing: "0.75px",

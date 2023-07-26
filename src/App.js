@@ -44,7 +44,7 @@ export default function App() {
 
         <Route exact path='employer' element={<PrivateRoute><Employer /></PrivateRoute>} >
           <Route path='my-jobs' element={<PrivateRoute><MyJobs /></PrivateRoute>} />
-          {/*<Route path='post-a-job' element={<PrivateRoute><PostAJob /></PrivateRoute>} />*/}
+          {/* <Route path='post-a-job' element={<PrivateRoute><PostAJob /></PrivateRoute>} /> */}
           <Route path='post-a-job/:jobId?' element={<PrivateRoute><PostAJobNew /></PrivateRoute>} />
           <Route path='my-profile' element={<PrivateRoute><MyProfileEmp /></PrivateRoute>} />
         </Route>

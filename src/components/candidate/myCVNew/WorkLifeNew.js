@@ -207,7 +207,7 @@ export default function WorkLife({ changeStep }) {
   }, []);
 
   return (
-    <Box sx={{ pl: 3 }}>
+    <Box>
       <Box sx={{ display: "flex", alignItems: "baseline" }}>
         <Box>
           <Typography

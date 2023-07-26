@@ -4,10 +4,9 @@ import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
 import Paper from "@mui/material/Paper";
 import { Editor } from "react-draft-wysiwyg";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditorState, ContentState, convertFromHTML } from "draft-js";
-import htmlToDraft from "html-to-draftjs";
-// import draftToHtml from 'draftjs-to-html'
+import { convertToHTML } from 'draft-convert';
+import DOMPurify from 'dompurify';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   borderRadius: "25px",
@@ -47,34 +46,107 @@ const toolBarOptions = {
   },
 };
 
-export default function TextEditor({ value, type, title, onInputCHange }) {
-  const i18n = locale.en;
+const getRGBValues = (text) => {
+  const rgbValues = text.match(/\((.*?)\)/)[1].split(',');
+  const color = `rgb(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]})`;
+  return color
+}
+const styleToHTML = (style) => {
+  if (style === 'BOLD') {
+    return <strong />;
+  }
+  if (style === 'ITALIC') {
+    return <em />;
+  }
+  if (style === 'UNDERLINE') {
+    return <u />;
+  }
+  if (style === 'STRIKETHROUGH') {
+    return <del />
+  }
+  if (style.includes('bgcolor-rgb')) {
+    let bgcolor = getRGBValues(style)
+    return <span style={{ background: bgcolor }} />;
+  }
+  if (style.includes('color-rgb')) {
+    let color = getRGBValues(style)
+    return <span style={{ color }} />;
+  }
+  return undefined;
+};
 
-  const getInitialState = (value) => {
-    if (value) {
-      const blocksFromHtml = htmlToDraft(value);
-      const { contentBlocks, entityMap } = blocksFromHtml;
-      const contentState = ContentState.createFromBlockArray(
-        contentBlocks,
-        entityMap
-      );
-      return EditorState.createWithContent(contentState);
-    } else {
-      return EditorState.createEmpty();
+const blockToHTML = (block) => {
+  const textAlign = block.data && block.data['text-align'];
+
+  const TagName = block.type === 'unordered-list-item'
+    ? 'ul'
+    : block.type === 'ordered-list-item'
+      ? 'ol'
+      : 'p';
+  if (textAlign) {
+    if (block.type === 'unstyled') {
+      return <p style={{ textAlign }} />;
     }
-  };
+    return (
+      <TagName>
+        <li style={{ textAlign }}>{block.text}</li>
+      </TagName>)
+  }
+};
 
-  const [editorState, setEditorState] = useState(getInitialState(value));
+const entityToHTML = (entity, originalText) => {
+  if (entity.type === "LINK") {
+    return (
+      <a
+        href={entity.data["url"]}
+        target={entity.data["targetOption"]}
+        rel="noopener noreferrer"
+      >
+        {originalText}
+      </a>
+    );
+  }
 
+  return originalText;
+};
+const options = {
+  blockToHTML,
+  styleToHTML,
+  entityToHTML,
+};
+
+export default function TextEditor({ value, type, title, onInputCHange }) {
+
+  const [editorState, setEditorState] = useState(() => {
+    if (value) {
+      const sampleMarkup = value;
+      const blocksFromHTML = convertFromHTML(sampleMarkup);
+      console.log(blocksFromHTML);
+      const content = ContentState.createFromBlockArray(
+        blocksFromHTML?.contentBlocks,
+        blocksFromHTML?.entityMap
+      );
+      return EditorState.createWithContent(content)
+    }
+    return EditorState.createEmpty()
+
+  })
+
+  const [convertedContent, setConvertedContent] = useState(null);
+  console.log(value);
   const onEditorStateChange = (text) => {
-    const value = text.getCurrentContent().getPlainText();
-    onInputCHange(value, type);
     setEditorState(text);
   };
-
   useEffect(() => {
-    setEditorState(getInitialState(value));
-  }, [value]);
+    let html = convertToHTML(options)(editorState.getCurrentContent());
+    onInputCHange(html, type)
+    setConvertedContent(html);
+
+  }, [editorState]);
+
+  // useEffect(() => {
+  //   setEditorState(EditorState.createWithContent(content))
+  // }, [])
 
   return (
     <StyledPaper>
@@ -86,14 +158,18 @@ export default function TextEditor({ value, type, title, onInputCHange }) {
       >
         {title}
       </Typography>
+      {console.log(editorState)}
       <Editor
-        // wrapperClassName="demo-wrapper"
-        // editorClassName="demo-editor"
-        toolbarClassName="toolbar-class"
+        // editorState={editorState}
         editorState={editorState}
         onEditorStateChange={onEditorStateChange}
+        placeholder="Write here..."
         toolbar={toolBarOptions}
       />
+
+      <div>
+        {convertedContent}
+      </div>
     </StyledPaper>
   );
 }

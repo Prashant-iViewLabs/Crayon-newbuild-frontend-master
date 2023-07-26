@@ -466,6 +466,7 @@ export default function StudyLife({ changeStep }) {
                     width: "100%",
                     borderRadius: "25px",
                     height: "40px",
+                    background: "#fff"
                   }}
                 >
                   {yearOptions.map((val) => (
@@ -718,6 +719,7 @@ export default function StudyLife({ changeStep }) {
                 width: "100%",
                 borderRadius: "25px",
                 height: "40px",
+                background: "#fff"
               }}
             >
               {yearOptions.map((val) => (
@@ -871,6 +873,7 @@ export default function StudyLife({ changeStep }) {
                 width: "100%",
                 borderRadius: "25px",
                 height: "40px",
+                background: "#fff"
               }}
             >
               {yearOptions.map((val) => (
