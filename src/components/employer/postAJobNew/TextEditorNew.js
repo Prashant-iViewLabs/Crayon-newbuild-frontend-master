@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { styled } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
@@ -117,36 +117,69 @@ const options = {
 
 export default function TextEditor({ value, type, title, onInputCHange }) {
 
+  // const [editorState, setEditorState] = useState(() => {
+  //   return EditorState.createEmpty()
+
+  // })
+  // const [initialValue, setInitialValue] = useState(value);
+  // const [convertedContent, setConvertedContent] = useState(null);
+  // useEffect(() => {
+  //   if (value && value !== initialValue) {
+  //     const blocksFromHTML = convertFromHTML(value);
+  //     const content = ContentState.createFromBlockArray(
+  //       blocksFromHTML?.contentBlocks,
+  //       blocksFromHTML?.entityMap
+  //     );
+  //     setEditorState(EditorState.createWithContent(content));
+  //     setInitialValue(value);
+  //   }
+  // }, [value, initialValue]);
+
+  // console.log(value);
+  // const onEditorStateChange = (text) => {
+  //   setEditorState(text);
+  //   console.log(text);
+  // };
+  // useEffect(() => {
+  //   let html = convertToHTML(options)(editorState.getCurrentContent());
+  //   onInputCHange(html, type)
+  //   setConvertedContent(html);
+
+  // }, [editorState]);
+
+  const editorRef = useRef(null);
   const [editorState, setEditorState] = useState(() => {
     if (value) {
-      const sampleMarkup = value;
-      const blocksFromHTML = convertFromHTML(sampleMarkup);
-      console.log(blocksFromHTML);
+      const blocksFromHTML = convertFromHTML(value);
       const content = ContentState.createFromBlockArray(
         blocksFromHTML?.contentBlocks,
         blocksFromHTML?.entityMap
       );
-      return EditorState.createWithContent(content)
+      return EditorState.createWithContent(content);
     }
-    return EditorState.createEmpty()
+    return EditorState.createEmpty();
+  });
+  const [convertedContent, setConvertedContent] = useState("");
 
-  })
-
-  const [convertedContent, setConvertedContent] = useState(null);
-  console.log(value);
-  const onEditorStateChange = (text) => {
-    setEditorState(text);
-  };
-  useEffect(() => {
-    let html = convertToHTML(options)(editorState.getCurrentContent());
-    onInputCHange(html, type)
+  const onEditorStateChange = (editorState) => {
+    setEditorState(editorState);
+    const html = convertToHTML(options)(editorState.getCurrentContent());
     setConvertedContent(html);
+    onInputCHange(html, type);
+  };
 
-  }, [editorState]);
-
-  // useEffect(() => {
-  //   setEditorState(EditorState.createWithContent(content))
-  // }, [])
+  useEffect(() => {
+    // This effect will update the initial value on component mount
+    if ((value && !convertedContent) || value !== convertedContent) {
+      const blocksFromHTML = convertFromHTML(value);
+      const content = ContentState.createFromBlockArray(
+        blocksFromHTML?.contentBlocks,
+        blocksFromHTML?.entityMap
+      );
+      setEditorState(EditorState.createWithContent(content));
+      setConvertedContent(value);
+    }
+  }, [value, convertedContent]);
 
   return (
     <StyledPaper>
@@ -158,18 +191,14 @@ export default function TextEditor({ value, type, title, onInputCHange }) {
       >
         {title}
       </Typography>
-      {console.log(editorState)}
       <Editor
         // editorState={editorState}
         editorState={editorState}
         onEditorStateChange={onEditorStateChange}
         placeholder="Write here..."
         toolbar={toolBarOptions}
+        ref={editorRef}
       />
-
-      <div>
-        {convertedContent}
-      </div>
     </StyledPaper>
   );
 }

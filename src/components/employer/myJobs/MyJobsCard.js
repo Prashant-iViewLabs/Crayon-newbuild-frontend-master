@@ -333,6 +333,7 @@ export default function MyJobsCard({ index, job, showManageJob }) {
           mb={1}
           color={theme.palette.black100}
           letterSpacing="0.25px"
+          height={"60px"}
         >
           <Box
             mt="12px"
