@@ -163,6 +163,10 @@ const StyledVR = styled(Box)(({ theme }) => ({
 
 const label = "match";
 
+const handleCopyText = (text) => {
+  navigator.clipboard.writeText(text);
+}
+
 export default function DraggableCard({
   item,
   index,
@@ -370,7 +374,7 @@ export default function DraggableCard({
                         {item?.candidate_profile?.candidate_info?.job_title
                           ?.title
                           ? item?.candidate_profile?.candidate_info?.job_title
-                              ?.title
+                            ?.title
                           : "-"}
                       </Typography>
                       <StyledHR></StyledHR>
@@ -480,11 +484,11 @@ export default function DraggableCard({
                       ? "yellowButton100"
                       : item?.job_users[0]?.candidate_job_status?.name ==
                         "not for me"
-                      ? "redButton"
-                      : item?.job_users[0]?.candidate_job_status?.name ==
-                        "i like this"
-                      ? "orangeButton"
-                      : "greenButton200"
+                        ? "redButton"
+                        : item?.job_users[0]?.candidate_job_status?.name ==
+                          "i like this"
+                          ? "orangeButton"
+                          : "greenButton200"
                   }
                   className="dotIcon"
                 >
@@ -701,31 +705,31 @@ export default function DraggableCard({
               >
                 {item?.candidate_profile?.candidate_info?.primary?.name !=
                   null && (
-                  <SmallButton
-                    color="purpleButton"
-                    height={25}
-                    letterSpacing="0"
-                    p="8px"
-                    label={
-                      item?.candidate_profile?.candidate_info?.primary?.name
-                    }
-                    mr="8px"
-                  />
-                )}
+                    <SmallButton
+                      color="purpleButton"
+                      height={25}
+                      letterSpacing="0"
+                      p="8px"
+                      label={
+                        item?.candidate_profile?.candidate_info?.primary?.name
+                      }
+                      mr="8px"
+                    />
+                  )}
 
                 {item?.candidate_profile?.candidate_info?.shadow?.name !=
                   null && (
-                  <SmallButton
-                    color="brownButton"
-                    height={25}
-                    letterSpacing="0"
-                    p="8px"
-                    label={
-                      item?.candidate_profile?.candidate_info?.shadow?.name
-                    }
-                    mr="8px"
-                  />
-                )}
+                    <SmallButton
+                      color="brownButton"
+                      height={25}
+                      letterSpacing="0"
+                      p="8px"
+                      label={
+                        item?.candidate_profile?.candidate_info?.shadow?.name
+                      }
+                      mr="8px"
+                    />
+                  )}
               </Box>
               <Box
                 sx={{
@@ -960,6 +964,7 @@ export default function DraggableCard({
                           width: "25px",
                         },
                       }}
+                      onClick={() => handleCopyText('mickey.mouse@gmail.com')}
                     >
                       <ContentCopyRoundedIcon />
                     </IconButton>
@@ -1011,6 +1016,7 @@ export default function DraggableCard({
                           width: "25px",
                         },
                       }}
+                      onClick={() => handleCopyText('09876543211')}
                     >
                       <ContentCopyRoundedIcon />
                     </IconButton>
@@ -1059,16 +1065,17 @@ export default function DraggableCard({
                         background: theme.palette.base.main,
                       }}
                     >
-                      <Box
-                        component="img"
-                        className="dragDots"
-                        alt="drag dots"
-                        src={linkedin}
-                        sx={{
-                          width: "20px",
-                          height: "20px",
-                        }}
-                      />
+                      <a href="https://in.linkedin.com/" target="_blank" rel="noreferrer">
+                        <Box
+                          component="img"
+                          className="dragDots"
+                          alt="drag dots"
+                          src={linkedin}
+                          sx={{
+                            width: "20px",
+                            height: "20px",
+                          }}/>
+                      </a>
                     </Box>
                   </Box>
                 </Popover>

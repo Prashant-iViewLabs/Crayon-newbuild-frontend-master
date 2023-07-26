@@ -191,7 +191,8 @@ export default function JobsDetailPage() {
       {/* Header Section Starts */}
       <Grid
         container
-        padding={1}
+        paddingTop={1}
+        paddingBottom={1}
         justifyContent="space-between"
         alignItems="center"
       >
@@ -202,8 +203,6 @@ export default function JobsDetailPage() {
             width: 40,
             maxHeight: { xs: 40 },
             maxWidth: { xs: 40 },
-            ml: 2,
-            mt: 1,
           }}
           alt="job_logo"
           src={job?.profile_url != "No URL" ? job?.profile_url : job_logo}
@@ -333,7 +332,7 @@ export default function JobsDetailPage() {
               }}
               gutterBottom
             >
-              {job?.title?.slice(0, 30)}
+              {job?.title}
             </Typography>
           </Tooltip>
 
@@ -1090,7 +1089,6 @@ export default function JobsDetailPage() {
                   width: 40,
                   maxHeight: { xs: 40 },
                   maxWidth: { xs: 40 },
-                  ml: 2,
                 }}
                 alt="job_logo"
                 src={job?.profile_url != "No URL" ? job?.profile_url : job_logo}
@@ -1102,6 +1100,7 @@ export default function JobsDetailPage() {
                   letterSpacing: "0.75px",
                   //   opacity: 0.8,
                   marginLeft: "16px",
+                  mt:0.5  
                 }}
               >
                 {job?.employer_profile?.company_name}

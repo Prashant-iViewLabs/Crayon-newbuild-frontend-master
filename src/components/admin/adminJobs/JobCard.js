@@ -728,7 +728,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box className="contentBoxLeft">
             <Tooltip title={jobContent?.description} placement="top-end">
               <Typography
