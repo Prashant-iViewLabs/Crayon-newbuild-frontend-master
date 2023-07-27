@@ -180,12 +180,13 @@ export default function DraggableCard({
 
   const i18n = locale.en;
   const [chartData, setChartData] = useState([88]);
-  const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  // const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [anchorElQandA, setAnchorElQandA] = useState(null);
   const [openQandADialog, setOpenQandADialog] = useState(false);
   const [questionAnswer, setQuestionAnswer] = useState([]);
+  const [expand, setExpand] = useState(false);
 
   const onHandleClose = () => {
     setOpenInfoDialog(false);
@@ -248,6 +249,9 @@ export default function DraggableCard({
     };
     onDragEnd(result);
   };
+  const toggleAcordion = () => {
+    setExpand((prev) => !prev);
+  };
 
   return (
     <Draggable
@@ -261,13 +265,16 @@ export default function DraggableCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           disableGutters
-          onChange={(event, expanded) => setIsAccordionOpen(expanded)}
+          // onChange={(event, expanded) => setIsAccordionOpen(expanded)}
+          expanded= {expand}
         >
           <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
+          expandIcon={<ExpandMoreIcon onClick={toggleAcordion}/>}
+          aria-controls="panel1a-content"
+          // IconButtonProps={{
+          //   onClick: toggleAcordion
+          // }}
+        >
             <Box
               sx={{
                 display: "flex",
@@ -393,7 +400,7 @@ export default function DraggableCard({
                     </Box>
                   </Box>
                 </Box>
-                {isAccordionOpen ? (
+                {expand ? (
                   <Box
                     sx={{
                       display: "flex",
@@ -1074,7 +1081,7 @@ export default function DraggableCard({
                           sx={{
                             width: "20px",
                             height: "20px",
-                          }}/>
+                          }} />
                       </a>
                     </Box>
                   </Box>

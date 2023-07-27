@@ -115,7 +115,8 @@ const StyledMenu = styled((props) => (
 //     },
 // }));
 
-const SortButton = ({ jobId, jobStatusId, setIsSort, setTalents }) => {
+// const SortButton = ({ jobId, jobStatusId, setIsSort, setTalents , columnIndex}) => {
+const SortButton = ({ jobId, jobStatusId, handleSortedValue }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
@@ -127,9 +128,9 @@ const SortButton = ({ jobId, jobStatusId, setIsSort, setTalents }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
-
+  console.log(jobId);
   const handleSort = async (sortoption) => {
-    console.log(sortoption, jobId, jobStatusId);
+    console.log(sortingOptions[sortoption], jobId);
     try {
       const { payload } = await dispatch(
         getTalentJobStatusApplications({
@@ -139,10 +140,8 @@ const SortButton = ({ jobId, jobStatusId, setIsSort, setTalents }) => {
         })
       );
       setAnchorEl(null);
-      //   setIsSort(true);
-      //   setTalents(payload?.data);
-      console.log(payload);
-    } catch (error) {}
+      handleSortedValue(jobStatusId, payload?.data)
+    } catch (error) { }
   };
 
   return (
@@ -180,7 +179,7 @@ const SortButton = ({ jobId, jobStatusId, setIsSort, setTalents }) => {
                 color: "black",
               }}
               variant="text"
-              onClick={() => handleSort(index + 1)}
+              onClick={() => handleSort(index)}
             >
               {selectedOption}
             </Button>
