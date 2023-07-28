@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -27,13 +27,22 @@ import CallIcon from "@mui/icons-material/Call";
 import SingleRadialChart from "../../common/SingleRadialChart";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import InputAdornment from "@mui/material/InputAdornment";
-import { approveJob } from "../../../redux/admin/jobsSlice";
+import {
+  addJobComment,
+  approveJob,
+  getAllComments,
+} from "../../../redux/admin/jobsSlice";
 import { useDispatch } from "react-redux";
 import { setAlert } from "../../../redux/configSlice";
 import { ALERT_TYPE } from "../../../utils/Constants";
-import { convertDatetimeAgo, dateConverter } from "../../../utils/DateTime";
+import {
+  convertDatetimeAgo,
+  dateConverter,
+  dateConverterMonth,
+} from "../../../utils/DateTime";
 import { Link, useLocation } from "react-router-dom";
 import jwt_decode from "jwt-decode";
+import { formatCurrencyWithCommas } from "../../../utils/Currency";
 import ChangeStatusButton from "./ChangeStatusButton";
 
 const label = "grit score";
@@ -196,16 +205,23 @@ const StyledTextField = styled(OutlinedInput)(({ theme }) => ({
   },
 }));
 
-export default function JobCard({ index, jobContent, getJobList }) {
+export default function JobCard({
+  index,
+  jobContent,
+  getJobList,
+  getComments,
+  comments,
+}) {
   const i18n = locale.en;
   const theme = useTheme();
   const dispatch = useDispatch();
 
   const [isHovered, setIsHovered] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [expand, setExpand] = useState(false);
 
   const location = useLocation();
   const include = location.pathname.includes("pending-jobs");
-  const [expand, setExpand] = useState(false);
 
   const token = localStorage?.getItem("token");
   let decodedToken;
@@ -213,7 +229,9 @@ export default function JobCard({ index, jobContent, getJobList }) {
     decodedToken = jwt_decode(token);
   }
 
-  console.log(decodedToken);
+  const toggleAcordion = () => {
+    setExpand((prev) => !prev);
+  };
 
   const handleApprove = async (job_id, employer_industries) => {
     let industry = employer_industries?.map((val) => val?.industry_id);
@@ -263,16 +281,48 @@ export default function JobCard({ index, jobContent, getJobList }) {
     }
   };
 
-  const toggleAcordion = () => {
-    setExpand((prev) => !prev);
+  const sendComment = async () => {
+    try {
+      console.log(inputValue);
+      const comments = {
+        job_id: jobContent?.job_id,
+        comment: inputValue,
+      };
+      const { payload } = await dispatch(addJobComment(comments));
+
+      if (payload?.status == "success") {
+        getComments(jobContent?.job_id);
+        setInputValue("");
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.SUCCESS,
+            msg: "Comment Added Successfully!",
+          })
+        );
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: error,
+        })
+      );
+    }
   };
 
   return (
-    <StyledAccordion
-      expanded={expand}
-    >
+    <StyledAccordion expanded={expand}>
       <AccordionSummary
-
         expandIcon={<ExpandMoreIcon onClick={toggleAcordion} />}
         aria-controls="panel1a-content"
         id="panel1a-header"
@@ -326,7 +376,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
               >
                 {jobContent?.employer_profile?.company_name?.length >= 30
                   ? jobContent?.employer_profile?.company_name?.slice(0, 30) +
-                  "..."
+                    "..."
                   : jobContent?.employer_profile?.company_name}
               </Typography>
             </Tooltip>
@@ -407,7 +457,10 @@ export default function JobCard({ index, jobContent, getJobList }) {
               ></SmallButton>
             ))}  
             */}
-            <Link to={`/employer/post-a-job/${jobContent?.job_id}`} target="_blank">
+            <Link
+              to={`/employer/post-a-job/${jobContent?.job_id}`}
+              target="_blank"
+            >
               <IconButton
                 aria-label="edit"
                 color="blueButton400"
@@ -422,7 +475,6 @@ export default function JobCard({ index, jobContent, getJobList }) {
                 <EditIcon />
               </IconButton>
             </Link>
-
           </Box>
         </Box>
 
@@ -462,7 +514,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
               }}
             >
               {jobContent?.salary?.currency?.symbol}
-              {jobContent?.salary?.max}
+              {formatCurrencyWithCommas(jobContent?.salary?.max)}
             </Typography>
             <StyledHR></StyledHR>
             <Typography
@@ -554,41 +606,11 @@ export default function JobCard({ index, jobContent, getJobList }) {
             <IconButton>
               <PlayCircleFilledIcon color="grayButton300" />
             </IconButton>
-            {/* {decodedToken?.data?.role_id == 4 ? (
-              <SmallButton
-                color={
-                  (jobContent?.job_status?.name == "paused" && "redButton") ||
-                  (jobContent?.job_status?.name == "closed" && "redButton") ||
-                  (jobContent?.job_status?.name == "pending" &&
-                    "orangeButton") ||
-                  (jobContent?.job_status?.name == "active" &&
-                    "lightGreenButton300")
-                }
-                height={24}
-                fontWeight={700}
-                label={jobContent?.job_status?.name}
-                borderRadius="25px"
-                mr="8px"
-              ></SmallButton>
-            ) : ( */}
-              {/* <SmallButton
-                color={
-                  (jobContent?.job_status?.name == "paused" && "redButton") ||
-                  (jobContent?.job_status?.name == "closed" && "redButton") ||
-                  (jobContent?.job_status?.name == "pending" &&
-                    "orangeButton") ||
-                  (jobContent?.job_status?.name == "active" &&
-                    "lightGreenButton300")
-                }
-                endIcon={decodedToken?.data?.role_id === 4 ? '':<KeyboardArrowDownIcon />}
-                height={24}
-                fontWeight={700}
-                label={jobContent?.job_status?.name}
-                borderRadius="25px"
-                mr="8px"
-              ></SmallButton> */}
-              <ChangeStatusButton loggedInUser={decodedToken?.data?.role_id} jobId={index} jobStatus={jobContent?.job_status?.name}/>
-            {/* )} */}
+            <ChangeStatusButton
+              loggedInUser={decodedToken?.data?.role_id}
+              jobId={index}
+              jobStatus={jobContent?.job_status?.name}
+            />
 
             <IconButton
               aria-label="edit"
@@ -1121,7 +1143,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
                       }}
                       variant="contained"
                       color="redButton"
-                    // onClick={() => showManageJob()}
+                      // onClick={() => showManageJob()}
                     >
                       {i18n["pendingJobs.managebtn"]}
                     </Button>
@@ -1139,96 +1161,54 @@ export default function JobCard({ index, jobContent, getJobList }) {
               >
                 {i18n["pendingJobs.comments"]} (2)
               </Typography>
-              <Box sx={{ display: "flex", mt: 2 }}>
-                <Box
-                  component="img"
-                  className="profileAvatar"
-                  alt="crayon logo"
-                  src={profile}
-                  sx={{
-                    mr: 1,
-                    width: 20,
-                    height: 20,
-                  }}
-                />
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      mr: 1,
-                    }}
-                  >
-                    Name
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "14px",
-                      fontWeight: 400,
-                      mr: 1,
-                    }}
-                  >
-                    Currently on R25,000pm, looking to change industries in the
-                    fintech space.
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "12px",
-                      fontWeight: 400,
-                      mr: 1,
-                      color: theme.palette.grayButton.main,
-                      textAlign: "end",
-                    }}
-                  >
-                    28 Nov 2022:
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: "flex", mt: 1 }}>
-                <Box
-                  component="img"
-                  className="profileAvatar"
-                  alt="crayon logo"
-                  src={profile}
-                  sx={{
-                    mr: 1,
-                    width: 20,
-                    height: 20,
-                  }}
-                />
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      mr: 1,
-                    }}
-                  >
-                    Name
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "14px",
-                      fontWeight: 400,
-                      mr: 1,
-                    }}
-                  >
-                    Currently on R25,000pm, looking to change industries in the
-                    fintech space.
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "12px",
-                      fontWeight: 400,
-                      mr: 1,
-                      color: theme.palette.grayButton.main,
-                      textAlign: "end",
-                    }}
-                  >
-                    28 Nov 2022:
-                  </Typography>
-                </Box>
-              </Box>
+              {comments?.map((comment) => {
+                return (
+                  <Box sx={{ display: "flex", mt: 2 }}>
+                    <Box
+                      component="img"
+                      className="profileAvatar"
+                      alt="crayon logo"
+                      src={profile}
+                      sx={{
+                        mr: 1,
+                        width: 20,
+                        height: 20,
+                      }}
+                    />
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          mr: 1,
+                        }}
+                      >
+                        Name
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 400,
+                          mr: 1,
+                        }}
+                      >
+                        {comment.comment}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "12px",
+                          fontWeight: 400,
+                          mr: 1,
+                          color: theme.palette.grayButton.main,
+                          textAlign: "end",
+                        }}
+                      >
+                        {dateConverterMonth(comment.created_at)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                );
+              })}
               <Box sx={{ mt: 4 }}>
                 {/* <StyledTextField placeholder="type your comment here..." id="comment" size="small" /> */}
                 <StyledTextField
@@ -1236,6 +1216,8 @@ export default function JobCard({ index, jobContent, getJobList }) {
                   type="text"
                   size="small"
                   placeholder="type your comment here..."
+                  value={inputValue} // Set the value to the state variable
+                  onChange={(e) => setInputValue(e.target.value)} // Update the state with the new input value
                   endAdornment={
                     <InputAdornment position="end">
                       <Box
@@ -1246,15 +1228,10 @@ export default function JobCard({ index, jobContent, getJobList }) {
                         sx={{
                           width: "30px",
                           // mr: 1
+                          cursor: "pointer",
                         }}
+                        onClick={sendComment}
                       />
-                      {/* <IconButton
-                                                aria-label="toggle password visibility"
-                                                edge="end"
-                                                color='redButton'
-                                            >
-                                                <PlaceIcon />
-                                            </IconButton> */}
                     </InputAdornment>
                   }
                 />

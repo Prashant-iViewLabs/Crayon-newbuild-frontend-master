@@ -115,7 +115,6 @@ const StyledMenu = styled((props) => (
 //     },
 // }));
 
-// const SortButton = ({ jobId, jobStatusId, setIsSort, setTalents , columnIndex}) => {
 const SortButton = ({ jobId, jobStatusId, handleSortedValue }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -128,9 +127,9 @@ const SortButton = ({ jobId, jobStatusId, handleSortedValue }) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  console.log(jobId);
+
   const handleSort = async (sortoption) => {
-    console.log(sortingOptions[sortoption], jobId);
+    console.log(sortoption, jobId, jobStatusId);
     try {
       const { payload } = await dispatch(
         getTalentJobStatusApplications({
@@ -140,8 +139,9 @@ const SortButton = ({ jobId, jobStatusId, handleSortedValue }) => {
         })
       );
       setAnchorEl(null);
-      handleSortedValue(jobStatusId, payload?.data)
-    } catch (error) { }
+      handleSortedValue(jobStatusId, payload?.data);
+      console.log(payload);
+    } catch (error) {}
   };
 
   return (

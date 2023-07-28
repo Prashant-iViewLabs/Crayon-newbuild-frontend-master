@@ -17,6 +17,8 @@ import { ALERT_TYPE, ERROR_MSG } from "../../../utils/Constants";
 import InfiniteScroll from "react-infinite-scroll-component";
 import SortButton from "./SortButton";
 import { useParams } from "react-router-dom";
+import { Tooltip } from "@mui/material";
+import Typography from "@mui/material/Typography";
 
 const StyledBox = (props) => {
   const { children, color } = props;
@@ -113,10 +115,11 @@ export const columnsFromBackend = {
 
 export default function ManageJob() {
   const dispatch = useDispatch();
+  // const [isSort, setIsSort] = useState(false);
+  const [talentStatus, setTalentStatus] = useState([]);
   const { jobId } = useParams();
 
   const [talents, setTalents] = useState([]);
-  const [talentStatus, setTalentStatus] = useState([])
 
   const getTalentStatusApplications = async (
     jobId,
@@ -171,17 +174,17 @@ export default function ManageJob() {
         item.count > 0
           ? getTalentStatusApplications(jobId, item.id, manage.payload.data)
           : setTalents((prevTalents) => {
-            const updatedTalents = manage.payload.data?.map((item) => {
-              const existingItem = prevTalents.find(
-                (prevItem) => prevItem.id === item.id
-              );
-              return {
-                ...item,
-                items: existingItem ? existingItem.items : [],
-              };
+              const updatedTalents = manage.payload.data?.map((item) => {
+                const existingItem = prevTalents.find(
+                  (prevItem) => prevItem.id === item.id
+                );
+                return {
+                  ...item,
+                  items: existingItem ? existingItem.items : [],
+                };
+              });
+              return [...updatedTalents];
             });
-            return [...updatedTalents];
-          });
       });
     } catch (error) {
       dispatch(setLoading(false));
@@ -288,6 +291,7 @@ export default function ManageJob() {
   useEffect(() => {
     getTalentMyJobStatusCount(jobId);
   }, []);
+
   const handleSortedValue = (columnName, value) => {
     console.log(columnName, value);
     setTalents((prevTalents) => {
@@ -304,11 +308,11 @@ export default function ManageJob() {
           return { ...item, items: existingItem ? existingItem.items : [] };
         }
       });
-      console.log(updatedTalents)
+      console.log(updatedTalents);
       return [...updatedTalents];
     });
-    
-  }
+  };
+
   return (
     <DragDropContext onDragEnd={(result) => onDragEnd(result)}>
       {/*
@@ -353,6 +357,24 @@ export default function ManageJob() {
         </Box>
       </Box>
       */}
+
+      {/*
+      <Tooltip arrow title={job?.title} placement="top">
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 800,
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 1,
+          }}
+          gutterBottom
+        >
+          {job?.title?.slice(0, 30)}
+        </Typography>
+      </Tooltip>
+      */}
       <Box sx={{ display: "flex", maxHeight: "100%" }}>
         {Object.entries(talents).map(([columnId, column], index) => {
           return (
@@ -381,13 +403,6 @@ export default function ManageJob() {
                     >
                       {column?.status} ({column?.count})
                     </Box>
-                    {/* <SortButton
-                      jobId={jobId}
-                      columnIndex={index}
-                      jobStatusId={column?.id}
-                      setIsSort={setIsSort}
-                      setTalents={setTalents}
-                    /> */}
                     <SortButton
                       jobId={jobId}
                       jobStatusId={column?.id}
@@ -399,6 +414,7 @@ export default function ManageJob() {
                       style={{
                         height: "100%",
                         overflowX: "hidden",
+                        scrollbarWidth: "thin",
                       }}
                       key={column?.id}
                       dataLength={talents[index]?.items?.length}
@@ -411,10 +427,6 @@ export default function ManageJob() {
                         </p>
                       }
                     >
-                      {
-                        console.log("talent index")}
-                      {console.log(talents[index])
-                      }
                       {talents[index]?.items?.map((item, index) => (
                         <DraggableCard
                           key={item?.user_id}
@@ -427,27 +439,27 @@ export default function ManageJob() {
                       ))}
                       <style>
                         {`.infinite-scroll-component::-webkit-scrollbar {
-                            // width: 7px !important;
-                            // background-color: #F5F5F5; /* Set the background color of the scrollbar */
-                            display: none;
+                            width: 7px !important;
+                            background-color: #F5F5F5; /* Set the background color of the scrollbar */
                           }
 
                           .infinite-scroll-component__outerdiv {
-                            height:80%
+                            height:100%
+                          }
+
+                          .infinite-scroll-component::-webkit-scrollbar-thumb {
+                            background-color: #888c; /* Set the color of the scrollbar thumb */
                           }`}
                       </style>
                     </InfiniteScroll>
                   </Box>
                   {provided.placeholder}
                 </Box>
-              )
-              }
+              )}
             </Droppable>
           );
         })}
       </Box>
-    </DragDropContext >
+    </DragDropContext>
   );
 }
-
-

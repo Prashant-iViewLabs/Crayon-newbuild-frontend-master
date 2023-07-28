@@ -36,6 +36,7 @@ import Menu from "@mui/material/Menu";
 import Fade from "@mui/material/Fade";
 import TrackButton from "./TrackButton";
 import { Link } from "react-router-dom";
+import { formatCurrencyWithCommas } from "../../../utils/Currency";
 
 const label1 = "applicants";
 const label2 = "shortlisted";
@@ -264,7 +265,9 @@ export default function MyJobsCard({ index, job, getJobs }) {
           placement="top"
         >
           <Link
-            to={`/job-detail/${job?.job_id}`}
+            to={`/candidate/job-detail/${`${
+              job?.town?.name + " " + job?.town?.region?.name
+            }`}/${job?.job_id}`}
             target={"_blank"}
             style={{
               textDecoration: "none",
@@ -296,7 +299,7 @@ export default function MyJobsCard({ index, job, getJobs }) {
             letterSpacing: "0.25px",
           }}
         >
-          R{job?.salary?.max} per month
+          R{formatCurrencyWithCommas(job?.salary?.max)} per month
         </Typography>
         <Box sx={{ display: "flex", alignItems: "baseline" }}>
           <Box

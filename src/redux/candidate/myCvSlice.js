@@ -40,6 +40,21 @@ export const uploadCv = createAsyncThunk(
   }
 );
 
+export const uploadCvWithoutLogin = createAsyncThunk(
+  "uploadCvWithoutLogin",
+  async (payload, { dispatch }) => {
+    dispatch(setLoading(true));
+    const { data } = await postApi(
+      "/upload/cvwithoutlogin",
+      payload,
+      true,
+      "multipart/form-data"
+    );
+    dispatch(setLoading(false));
+    return data;
+  }
+);
+
 export const uploadPortfolio = createAsyncThunk(
   "uploadPortfolio",
   async (payload, { dispatch }) => {

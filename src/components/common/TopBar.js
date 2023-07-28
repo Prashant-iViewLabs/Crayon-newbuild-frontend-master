@@ -29,7 +29,6 @@ import {
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import locale from "../../i18n/locale";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import CustomDialog from "./CustomDialog";
 import Signup from "../login/signup";
 import Login from "../login/login";
@@ -78,7 +77,6 @@ export default function TopBar() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [publicTabs, setPublicTabs] = useState(PUBLIC_TAB_ITEMS);
   const quickLinksButtonRef = useRef(null);
-  // const [open, setOpen] = useState(anchorEl);
 
   const sign = useSelector((state) => state.sign);
   const handleLogin = () => {
@@ -108,6 +106,7 @@ export default function TopBar() {
         setcurrentTabs([]);
       } else {
         if (pathname.slice(1).includes("employer")) {
+          setIsLoggedIn(true);
           setcurrentTabs(AUTHORIZED_TAB_ITEMS_EMPLOYER);
         } else {
           setcurrentTabs(PUBLIC_TAB_ITEMS);
@@ -115,6 +114,7 @@ export default function TopBar() {
       }
     } else if (userType == 3) {
       if (pathname.slice(1).includes("candidate")) {
+        setIsLoggedIn(true);
         setcurrentTabs(AUTHORIZED_TAB_ITEMS_CANDIDATE);
       } else {
         setcurrentTabs(PUBLIC_TAB_ITEMS);
@@ -122,7 +122,7 @@ export default function TopBar() {
     } else {
       setcurrentTabs(PUBLIC_TAB_ITEMS);
     }
-  }, [activeTab, userType]);
+  }, [activeTab, userType, isLoggedIn]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

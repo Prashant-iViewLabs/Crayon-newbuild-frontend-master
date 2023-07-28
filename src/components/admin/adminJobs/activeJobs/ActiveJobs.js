@@ -1,11 +1,15 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import Select from "@mui/material/Select";
 import locale from "../../../../i18n/locale";
 import { useDispatch } from "react-redux";
-import { getAllJobs, getJobCount } from "../../../../redux/admin/jobsSlice";
+import {
+  getAllComments,
+  getAllJobs,
+  getJobCount,
+} from "../../../../redux/admin/jobsSlice";
 import JobCard from "../JobCard";
 import { setAlert } from "../../../../redux/configSlice";
 import { ALERT_TYPE } from "../../../../utils/Constants";
@@ -18,9 +22,9 @@ export default function ActiveJobs() {
   const dispatch = useDispatch();
   const [lastKey, setLastKey] = useState("");
   const [totalJob, setTotalJob] = useState(0);
-  const [status, setStatus] = useState(false);
+  const [comments, setComments] = useState([]);
 
-  const getJobList = useCallback(async (lastkeyy) => {
+  const getJobList = async (lastkeyy) => {
     console.log("LAST KEY", lastkeyy);
     const { payload } = await dispatch(getAllJobs(lastkeyy + "&status_id=2"));
     if (payload?.status == "success") {
@@ -35,16 +39,42 @@ export default function ActiveJobs() {
         })
       );
     }
-  }, [dispatch]);
-  const JobCount = useCallback(async () => {
+  };
+
+  const JobCount = async () => {
     const response = await dispatch(getJobCount(2));
     setTotalJob(response.payload.count);
-  }, [dispatch]);
+  };
+
+  const getComments = async (jobid) => {
+    try {
+      const { payload } = await dispatch(getAllComments(jobid));
+      if (payload?.status == "success") {
+        setComments(payload?.data);
+      } else {
+        dispatch(
+          setAlert({
+            show: true,
+            type: ALERT_TYPE.ERROR,
+            msg: payload?.message,
+          })
+        );
+      }
+    } catch (error) {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: error,
+        })
+      );
+    }
+  };
 
   useEffect(() => {
     getJobList(lastKey);
     JobCount();
-  }, [JobCount, getJobList, lastKey]);
+  }, []);
 
   return (
     <Box sx={{ ml: 6 }}>
@@ -148,7 +178,13 @@ export default function ActiveJobs() {
             }}
           >
             {allJobs?.map((job, index) => (
-              <JobCard key={index} index={job.job_id} jobContent={job} />
+              <JobCard
+                key={index}
+                index={job.job_id}
+                jobContent={job}
+                comments={comments}
+                getComments={getComments}
+              />
             ))}
           </Box>
         </InfiniteScroll>

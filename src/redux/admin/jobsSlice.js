@@ -48,6 +48,29 @@ export const talentPersonality = createAsyncThunk(
   }
 );
 
+export const addJobComment = createAsyncThunk(
+  "addJobComment",
+  async (payload, { dispatch }) => {
+    dispatch(setLoading(true));
+    const { data } = await postApi("/admin/addJobComment", payload, true);
+    dispatch(setLoading(false));
+    return data;
+  }
+);
+
+export const getAllComments = createAsyncThunk(
+  "getAllComments",
+  async (payload, { dispatch }) => {
+    dispatch(setLoading(true));
+    const { data } = await getApi(
+      `/admin/allJobComment?job_id=${payload}`,
+      true
+    );
+    dispatch(setLoading(false));
+    return data;
+  }
+);
+
 export const getAllTalentJobs = createAsyncThunk(
   "getAllTalentJobs",
   async (payload, { dispatch }) => {

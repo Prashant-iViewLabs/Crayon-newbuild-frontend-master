@@ -5,22 +5,18 @@ import locale from "../../i18n/locale";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import InputBox from "../../components/common/InputBox";
-import SwipeableButton from "../../components/common/SwipeableButton";
-import { USER_TYPES } from "../../utils/Constants";
-import { styled, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import "./login.css";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { Link } from "react-router-dom";
 import { IconButton, InputBase } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import jwt_decode from "jwt-decode";
+import { getLocalStorage } from "../../utils/Common";
 
 const LOGINDATA = {
   username: "",
-  password: "",
-};
-const NEW_PASSWORD = {
   password: "",
 };
 
@@ -36,15 +32,8 @@ const validationSchema = Yup.object().shape({
 export default function Login({ handleLogin }) {
   const i18n = locale.en;
   const theme = useTheme();
-  const [userType, setUserType] = useState(USER_TYPES[0]);
-  const [loginData, setLoginData] = useState(LOGINDATA);
-  const [newPassword, setNewPassword] = useState(NEW_PASSWORD);
   const [showPassword, setShowPassword] = useState(false);
   const [inputType, setInputType] = useState("password");
-
-  const onHandleButtonToggle = (event, type) => {
-    setUserType(type);
-  };
 
   const handleShowPassword = () => {
     if (showPassword) setInputType("password");
@@ -53,6 +42,12 @@ export default function Login({ handleLogin }) {
     setShowPassword(!showPassword);
   };
 
+  const token = localStorage?.getItem("token");
+  let decodedToken;
+  if (token) {
+    decodedToken = jwt_decode(token);
+  }
+
   const formik = useFormik({
     initialValues: LOGINDATA,
     validationSchema: validationSchema,
@@ -60,17 +55,23 @@ export default function Login({ handleLogin }) {
       const formBody = {
         username: formik.values.username,
         password: formik.values.password,
+        fileName:
+          decodedToken?.data?.role_id === undefined
+            ? getLocalStorage("fileName")
+            : "",
+        job_id:
+          decodedToken?.data?.role_id === undefined
+            ? getLocalStorage("job_id")
+            : "",
+        jobs_user_id:
+          decodedToken?.data?.role_id === undefined
+            ? getLocalStorage("jobs_user_id")
+            : "",
       };
       await handleLogin(formBody);
     },
   });
 
-  const onInputChange = (event) => {
-    setLoginData((prevState) => ({
-      ...prevState,
-      [event.target.id]: event.target.value,
-    }));
-  };
   return (
     <Box>
       <Paper

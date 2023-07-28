@@ -23,6 +23,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import { formatCurrencyWithCommas } from "../../../utils/Currency";
 import { InputLabel, Paper, Popover, Tooltip } from "@mui/material";
 import RadialChart from "../../common/RadialChart";
 import {
@@ -56,6 +57,7 @@ import AutoComplete from "../../common/AutoComplete";
 import StyledButton from "../../common/StyledButton";
 import { talentPersonality } from "../../../redux/admin/jobsSlice";
 import { setAlert } from "../../../redux/configSlice";
+import { Link } from "react-router-dom";
 
 const label = "grit score";
 const labelExp = "experience";
@@ -463,16 +465,24 @@ export default function AllTalentCard({
                 }}
               />
             )}
-
-            <Typography
-              sx={{
-                fontSize: "20px",
-                fontWeight: 700,
-                mr: 1,
+            <Link
+              to={`/candidate-cv/${talentContent?.user_id}`}
+              target="_blank"
+              style={{
+                textDecoration: "none",
+                color: theme.palette.black,
               }}
             >
-              {talentContent?.first_name}
-            </Typography>
+              <Typography
+                sx={{
+                  fontSize: "20px",
+                  fontWeight: 700,
+                  mr: 1,
+                }}
+              >
+                {talentContent?.first_name}
+              </Typography>
+            </Link>
             <Typography
               sx={{
                 fontSize: "20px",
@@ -578,7 +588,11 @@ export default function AllTalentCard({
                 mr: 1,
               }}
             >
-              R{talentContent?.candidate_profile?.candidate_info?.salary?.max}pm
+              R
+              {formatCurrencyWithCommas(
+                talentContent?.candidate_profile?.candidate_info?.salary?.max
+              )}
+              pm
             </Typography>
             <StyledHR></StyledHR>
             <Typography
@@ -1147,8 +1161,8 @@ export default function AllTalentCard({
                 }}
                 sx={{
                   "& .css-ll95b0-MuiPaper-root-MuiPopover-paper": {
-                    padding: "16px",
-                    width: "40%",
+                    padding: "16px !important",
+                    minWidth: "50% !important",
                   },
                 }}
               >
@@ -1208,7 +1222,7 @@ export default function AllTalentCard({
                   </Box>
                 </Box>
 
-                <Box sx={{ width: "100%" }}>
+                <Box sx={{ width: "100%", mb: 3 }}>
                   <InputLabel
                     htmlFor="tags"
                     sx={{
@@ -1228,7 +1242,7 @@ export default function AllTalentCard({
                     name="traits"
                     value={getTraitsValue()}
                     onChange={handleMultipleAutoComplete}
-                    sx={{ width: "95%", display: "inline-table" }}
+                    sx={{ width: "97%", display: "inline-table" }}
                     placeholder={i18n["postAJob.preferredShadowPersonality"]}
                     data={traits}
                     limitTags={5}
@@ -1260,18 +1274,25 @@ export default function AllTalentCard({
                     valueLabelDisplay="auto"
                     valueLabelFormat={textValue}
                     marks={marks}
-                    sx={{ width: "88%", ml: 2 }}
+                    sx={{ width: "95%", ml: 2 }}
                   />
                 </Box>
 
-                <StyledButton
-                  sx={{ mr: 0 }}
-                  variant="contained"
-                  color="redButton100"
-                  onClick={addPersonality}
+                <Box
+                  sx={{
+                    display: "table",
+                    margin: "auto",
+                  }}
                 >
-                  {i18n["allTalent.addPersonality"]}
-                </StyledButton>
+                  <StyledButton
+                    sx={{ mr: 0 }}
+                    variant="contained"
+                    color="redButton100"
+                    onClick={addPersonality}
+                  >
+                    {i18n["allTalent.addPersonality"]}
+                  </StyledButton>
+                </Box>
               </Popover>
               <Box
                 sx={{
@@ -1553,7 +1574,13 @@ export default function AllTalentCard({
                   height={18}
                   color="grayButton"
                   borderRadius="5px"
-                  label={`>${talentContent?.candidate_profile?.candidate_info?.salary?.min} < ${talentContent?.candidate_profile?.candidate_info?.salary?.max}`}
+                  label={`>${formatCurrencyWithCommas(
+                    talentContent?.candidate_profile?.candidate_info?.salary
+                      ?.min
+                  )} < ${formatCurrencyWithCommas(
+                    talentContent?.candidate_profile?.candidate_info?.salary
+                      ?.max
+                  )}`}
                   mr="8px"
                 ></SmallButton>
                 {/* <Slider

@@ -109,6 +109,7 @@ export default function CultureAdd({ changeStep }) {
   const [errors, setErrors] = useState([]);
   const { jobId } = useParams();
   const [selectedCount, setSelectedCount] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { personalities, traits } = useSelector((state) => state.postJobs);
 
@@ -440,22 +441,22 @@ export default function CultureAdd({ changeStep }) {
             </InputLabel>
 
             <AutoComplete
-              // selectedCount={selectedCount}
               multiple={true}
               id="traits"
               name="traits"
               value={getTraitsValue()}
               onChange={handleMultipleAutoComplete}
+              disableCloseOnSelect={true}
               sx={{ width: "95%", display: "inline-table" }}
               placeholder={i18n["postAJob.preferredTraits"]}
               data={traits}
               limitTags={5}
             ></AutoComplete>
 
-            {getTraitsValue() == "" &&
-              errors?.find((error) => error.key == "traits") && (
+            {getTraitsValue() === "" &&
+              errors?.find((error) => error.key === "traits") && (
                 <Typography color={"red"}>
-                  {`*${errors?.find((error) => error.key == "traits").message}`}
+                  {`*${errors?.find((error) => error.key === "traits").message}`}
                 </Typography>
               )}
           </Box>

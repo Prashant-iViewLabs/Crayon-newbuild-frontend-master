@@ -29,6 +29,8 @@ import { convertDatetimeAgo } from "../../../utils/DateTime";
 import { useDispatch } from "react-redux";
 import jwt_decode from "jwt-decode";
 import { favouriteJob } from "../../../redux/guest/talentSlice";
+import { Link } from "react-router-dom";
+import { formatCurrencyWithCommas } from "../../../utils/Currency";
 
 const label1 = "applications";
 const label2 = "shortlisting";
@@ -224,9 +226,18 @@ export default function TalentCard({ index, job }) {
         >
           posted {convertDatetimeAgo(job?.updated_at)}
         </Typography>
-        <TextWrapper line={1} weight={700} size={20} minHeight={30}>
-          {job?.first_name}
-        </TextWrapper>
+        <Link
+          to={`/candidate-cv/${job?.user_id}`}
+          target="_blank"
+          style={{
+            textDecoration: "none",
+            color: theme.palette.black,
+          }}
+        >
+          <TextWrapper line={1} weight={700} size={20} minHeight={30}>
+            {job?.first_name}
+          </TextWrapper>
+        </Link>
         <TextWrapper line={1} weight={700} size={20} minHeight={30}>
           {job?.candidate_profile?.candidate_info?.job_title?.title}
         </TextWrapper>
@@ -239,7 +250,7 @@ export default function TalentCard({ index, job }) {
           }}
         >
           {job?.Currency}
-          {job?.candidate_profile?.candidate_info?.salary?.max}
+          {formatCurrencyWithCommas(job?.candidate_profile?.candidate_info?.salary?.max)}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "baseline" }}>
           <Box

@@ -13,8 +13,8 @@ export default function SmallButton({
   startIconMargin,
   onClick,
   value,
-  disabled,
   justifyContent,
+  disabled,
   ...props
 }) {
   const i18n = locale.en;
@@ -24,11 +24,11 @@ export default function SmallButton({
     <Tooltip title={value ? value : label} placement="top-end">
       <Button
         variant="contained"
+        disabled={disabled}
         color={color}
         startIcon={startIcon}
         endIcon={endIcon}
         onClick={onClick}
-        disabled={disabled}
         sx={{
           justifyContent: justifyContent,
           fontSize: 12,

@@ -42,7 +42,7 @@ import LinearProgress, {
 import { convertDOB } from "../../../utils/DateTime";
 import { setAlert } from "../../../redux/configSlice";
 import { useDispatch } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getQandA } from "../../../redux/employer/myJobsSlice";
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
@@ -163,10 +163,6 @@ const StyledVR = styled(Box)(({ theme }) => ({
 
 const label = "match";
 
-const handleCopyText = (text) => {
-  navigator.clipboard.writeText(text);
-}
-
 export default function DraggableCard({
   item,
   index,
@@ -176,11 +172,9 @@ export default function DraggableCard({
 }) {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const i18n = locale.en;
   const [chartData, setChartData] = useState([88]);
-  // const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [anchorElQandA, setAnchorElQandA] = useState(null);
@@ -210,7 +204,7 @@ export default function DraggableCard({
         user_id: item?.user_id,
       };
       const { payload } = await dispatch(getQandA(data));
-      if (payload?.status == "success") {
+      if (payload?.status === "success") {
         console.log(payload?.data);
         setQuestionAnswer(payload?.data);
       } else {
@@ -249,6 +243,11 @@ export default function DraggableCard({
     };
     onDragEnd(result);
   };
+
+  const handleCopytext = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
   const toggleAcordion = () => {
     setExpand((prev) => !prev);
   };
@@ -265,16 +264,12 @@ export default function DraggableCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           disableGutters
-          // onChange={(event, expanded) => setIsAccordionOpen(expanded)}
-          expanded= {expand}
+          expanded={expand}
         >
           <AccordionSummary
-          expandIcon={<ExpandMoreIcon onClick={toggleAcordion}/>}
-          aria-controls="panel1a-content"
-          // IconButtonProps={{
-          //   onClick: toggleAcordion
-          // }}
-        >
+            expandIcon={<ExpandMoreIcon onClick={toggleAcordion} />}
+            aria-controls="panel1a-content"
+          >
             <Box
               sx={{
                 display: "flex",
@@ -327,10 +322,13 @@ export default function DraggableCard({
                     className="profileAvatar"
                     alt="crayon logo"
                     src={
-                      item?.profile_url != "No URL"
+                      item?.profile_url !== "No URL"
                         ? item?.profile_url
                         : profile
                     }
+                    sx={{
+                      borderRadius: "50% !important",
+                    }}
                   />
                   <Box sx={{ marginLeft: "4px" }}>
                     <Tooltip
@@ -381,7 +379,7 @@ export default function DraggableCard({
                         {item?.candidate_profile?.candidate_info?.job_title
                           ?.title
                           ? item?.candidate_profile?.candidate_info?.job_title
-                            ?.title
+                              ?.title
                           : "-"}
                       </Typography>
                       <StyledHR></StyledHR>
@@ -487,15 +485,15 @@ export default function DraggableCard({
               >
                 <IconButton
                   color={
-                    item?.job_users[0]?.candidate_job_status?.name == "pending"
+                    item?.job_users[0]?.candidate_job_status?.name === "pending"
                       ? "yellowButton100"
-                      : item?.job_users[0]?.candidate_job_status?.name ==
+                      : item?.job_users[0]?.candidate_job_status?.name ===
                         "not for me"
-                        ? "redButton"
-                        : item?.job_users[0]?.candidate_job_status?.name ==
-                          "i like this"
-                          ? "orangeButton"
-                          : "greenButton200"
+                      ? "redButton"
+                      : item?.job_users[0]?.candidate_job_status?.name ===
+                        "i like this"
+                      ? "orangeButton"
+                      : "greenButton200"
                   }
                   className="dotIcon"
                 >
@@ -650,7 +648,7 @@ export default function DraggableCard({
                   sx={{
                     width: "100% !important",
                     "& .css-ll95b0-MuiPaper-root-MuiPopover-paper": {
-                      padding: "16px",
+                      padding: "16px !important",
                     },
                   }}
                 >
@@ -712,31 +710,31 @@ export default function DraggableCard({
               >
                 {item?.candidate_profile?.candidate_info?.primary?.name !=
                   null && (
-                    <SmallButton
-                      color="purpleButton"
-                      height={25}
-                      letterSpacing="0"
-                      p="8px"
-                      label={
-                        item?.candidate_profile?.candidate_info?.primary?.name
-                      }
-                      mr="8px"
-                    />
-                  )}
+                  <SmallButton
+                    color="purpleButton"
+                    height={25}
+                    letterSpacing="0"
+                    p="8px"
+                    label={
+                      item?.candidate_profile?.candidate_info?.primary?.name
+                    }
+                    mr="8px"
+                  />
+                )}
 
                 {item?.candidate_profile?.candidate_info?.shadow?.name !=
                   null && (
-                    <SmallButton
-                      color="brownButton"
-                      height={25}
-                      letterSpacing="0"
-                      p="8px"
-                      label={
-                        item?.candidate_profile?.candidate_info?.shadow?.name
-                      }
-                      mr="8px"
-                    />
-                  )}
+                  <SmallButton
+                    color="brownButton"
+                    height={25}
+                    letterSpacing="0"
+                    p="8px"
+                    label={
+                      item?.candidate_profile?.candidate_info?.shadow?.name
+                    }
+                    mr="8px"
+                  />
+                )}
               </Box>
               <Box
                 sx={{
@@ -918,7 +916,7 @@ export default function DraggableCard({
                   sx={{
                     width: "16% !important",
                     "& .css-ll95b0-MuiPaper-root-MuiPopover-paper": {
-                      padding: "16px 0 16px 0",
+                      padding: "16px 0 16px 0 !important",
                     },
                   }}
                 >
@@ -957,7 +955,7 @@ export default function DraggableCard({
                         textOverflow: "ellipsis", // Adds dots at the end of overflowing text
                       }}
                     >
-                      mickey.mouse@gmail.com
+                      {item?.email}
                     </Typography>
                     <IconButton
                       aria-label="edit"
@@ -971,7 +969,7 @@ export default function DraggableCard({
                           width: "25px",
                         },
                       }}
-                      onClick={() => handleCopyText('mickey.mouse@gmail.com')}
+                      onClick={() => handleCopytext(item?.email)}
                     >
                       <ContentCopyRoundedIcon />
                     </IconButton>
@@ -1008,7 +1006,7 @@ export default function DraggableCard({
                         letterSpacing: "0.75px",
                       }}
                     >
-                      09876543211
+                      {item?.candidate_profile?.contact_no}
                     </Typography>
                     <IconButton
                       aria-label="edit"
@@ -1023,7 +1021,9 @@ export default function DraggableCard({
                           width: "25px",
                         },
                       }}
-                      onClick={() => handleCopyText('09876543211')}
+                      onClick={() =>
+                        handleCopytext(item?.candidate_profile?.contact_no)
+                      }
                     >
                       <ContentCopyRoundedIcon />
                     </IconButton>
@@ -1072,7 +1072,10 @@ export default function DraggableCard({
                         background: theme.palette.base.main,
                       }}
                     >
-                      <a href="https://in.linkedin.com/" target="_blank" rel="noreferrer">
+                      <Link
+                        to={item?.candidate_profile?.linkedin_profile_link}
+                        target="_blank"
+                      >
                         <Box
                           component="img"
                           className="dragDots"
@@ -1081,8 +1084,10 @@ export default function DraggableCard({
                           sx={{
                             width: "20px",
                             height: "20px",
-                          }} />
-                      </a>
+                            cursor: "pointer",
+                          }}
+                        />
+                      </Link>
                     </Box>
                   </Box>
                 </Popover>

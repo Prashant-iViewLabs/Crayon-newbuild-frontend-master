@@ -76,7 +76,7 @@ export default function App() {
 
         <Route path='*' element={<ComingSoon />} />
         <Route path='candidate-cv/:id' element={<CandidateCVPage />} />
-        <Route path='job-detail/:id' element={<JobsDetailPage />} />
+        <Route path='/:prev/job-detail/:location/:id' element={<JobsDetailPage />} />
       </Route>
       <Route path='*' element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
     </Routes>

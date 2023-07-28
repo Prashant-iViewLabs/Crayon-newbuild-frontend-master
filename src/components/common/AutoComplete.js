@@ -20,6 +20,7 @@ export default function AutoComplete({
   sx,
   value,
   defaultValue,
+  disableCloseOnSelect,
   onChange,
   data,
   disabled = false,
@@ -28,11 +29,7 @@ export default function AutoComplete({
   allowCustomInput = true,
   index,
   showAddOption = false,
-  // onOpen,
-  // onClose,
-  // selectedCount,
 }) {
-  // const [isFocused, setIsFocused] = useState(false);
   const theme = useTheme();
   return (
     <Paper
@@ -48,15 +45,6 @@ export default function AutoComplete({
     >
       <StyledAutocomplete
         showAddOption={showAddOption}
-        // open={isFocused && selectedCount < 5}
-        // onFocus={() => setIsFocused(true)}
-        // onBlur={(event) => {
-        //   // Check if an option was selected or if the user clicked outside
-        //   if (!event.currentTarget.contains(event.relatedTarget)) {
-        //     setIsFocused(false);
-        //     selectedCount = 0;
-        //   }
-        // }}
         multiple={multiple}
         limitTags={limitTags}
         sx={{
@@ -66,6 +54,7 @@ export default function AutoComplete({
           },
         }}
         disabled={disabled}
+        disableCloseOnSelect={disableCloseOnSelect}
         allowCustomInput={allowCustomInput}
         size="small"
         id={id}

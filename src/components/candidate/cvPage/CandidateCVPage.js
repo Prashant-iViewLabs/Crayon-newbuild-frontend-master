@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, IconButton } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import profile from "../../../assets/profile2.svg";
+import profile from "../../../assets/profile.png";
 import PlaceIcon from "@mui/icons-material/Place";
 import SmallButton from "../../common/SmallButton";
 import ManIcon from "@mui/icons-material/Man";
@@ -21,6 +21,7 @@ import { getCandidateCV } from "../../../redux/employer/myJobsSlice";
 import { useDispatch } from "react-redux";
 import { setAlert } from "../../../redux/configSlice";
 import { ALERT_TYPE, ERROR_MSG } from "../../../utils/Constants";
+import { formatCurrencyWithCommas } from "../../../utils/Currency";
 
 const label = "grit score";
 
@@ -229,7 +230,9 @@ export default function CandidateCVPage() {
                   stateData?.candidate_profile?.candidate_info?.salary?.currency
                     ?.symbol
                 }
-                {stateData?.candidate_profile?.candidate_info?.salary?.max}
+                {formatCurrencyWithCommas(
+                  stateData?.candidate_profile?.candidate_info?.salary?.max
+                )}
               </Typography>
             </Box>
             <Box

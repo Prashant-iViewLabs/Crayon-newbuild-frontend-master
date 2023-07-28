@@ -43,7 +43,6 @@ import Login from "../../login/login";
 import { login } from "../../../redux/login/loginSlice";
 import { getLocalStorage, setLocalStorage } from "../../../utils/Common";
 import { getJobDetail } from "../../../redux/guest/jobsSlice";
-
 import DOMPurify from "dompurify";
 
 const label1 = "applied";
@@ -172,15 +171,16 @@ export default function JobsDetailPage() {
     }
   };
 
-  useEffect(() => {
-    handleCardClick();
-  }, []);
-
   function createMarkup(html) {
     return {
       __html: DOMPurify.sanitize(html),
     };
   }
+
+  useEffect(() => {
+    handleCardClick();
+  }, []);
+
   return (
     <Grid
       container
@@ -1107,7 +1107,7 @@ export default function JobsDetailPage() {
                   letterSpacing: "0.75px",
                   //   opacity: 0.8,
                   marginLeft: "16px",
-                  mt: 0.5
+                  mt: 0.5,
                 }}
               >
                 {job?.employer_profile?.company_name}

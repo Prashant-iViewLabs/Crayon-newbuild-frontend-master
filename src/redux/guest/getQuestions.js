@@ -16,11 +16,36 @@ export const getAllQuestions = createAsyncThunk(
     return data;
   }
 );
+export const getAllQuestionsWithoutLogin = createAsyncThunk(
+  "getAllQuestionsWithoutLogin",
+  async (payload, { dispatch }) => {
+    dispatch(setLoading(true));
+    const { data } = await getApi(
+      "/candidate/getquestionwithoutlogin?job_id=" + payload,
+      true
+    );
+    dispatch(setLoading(false));
+    return data;
+  }
+);
 export const postAnswers = createAsyncThunk(
   "postAnswers",
   async (payload, { dispatch }) => {
     dispatch(setLoading(true));
     const { data } = await postApi("/candidate/applywithlogin", payload, true);
+    dispatch(setLoading(false));
+    return data;
+  }
+);
+export const postAnswersWithoutLogin = createAsyncThunk(
+  "postAnswersWithoutLogin",
+  async (payload, { dispatch }) => {
+    dispatch(setLoading(true));
+    const { data } = await postApi(
+      "/candidate/applywithoutlogin",
+      payload,
+      true
+    );
     dispatch(setLoading(false));
     return data;
   }

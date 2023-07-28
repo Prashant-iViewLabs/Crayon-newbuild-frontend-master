@@ -23,6 +23,7 @@ import { Tooltip } from "@mui/material";
 import ManageButtonMenu from "./ManageButtonMenu";
 import { Link } from "react-router-dom";
 import DOMPurify from "dompurify";
+import { formatCurrencyWithCommas } from "../../../utils/Currency";
 
 const label1 = "applicants";
 const label2 = "shortlisted";
@@ -178,7 +179,9 @@ export default function MyJobsCard({ index, job }) {
           placement="top"
         >
           <Link
-            to={`/job-detail/${job?.job_id}`}
+            to={`/employer/job-detail/${`${
+              job?.town?.name + " " + job?.town?.region?.name
+            }`}/${job?.job_id}`}
             target={"_blank"}
             style={{
               textDecoration: "none",
@@ -197,7 +200,7 @@ export default function MyJobsCard({ index, job }) {
               }}
               gutterBottom
             >
-              {job?.title}
+              {job?.title.slice(0, 30)}
             </Typography>
           </Link>
         </Tooltip>
@@ -211,7 +214,7 @@ export default function MyJobsCard({ index, job }) {
           }}
         >
           {job?.currencySymbol}
-          {job?.salaryMax} per month
+          {formatCurrencyWithCommas(job?.salaryMax)} per month
         </Typography>
         <Box sx={{ display: "flex", alignItems: "baseline" }}>
           <Box

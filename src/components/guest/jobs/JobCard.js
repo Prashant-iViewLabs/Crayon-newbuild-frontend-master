@@ -12,13 +12,12 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import locale from "../../../i18n/locale";
-import ApplyJobs from "./ApplyJobs";
-import { getAllQuestions } from "../../../redux/guest/getQuestions";
+import {
+  getAllQuestions,
+  getAllQuestionsWithoutLogin,
+} from "../../../redux/guest/getQuestions";
 import {
   ALERT_TYPE,
-  AUTHORIZED_TAB_ITEMS_CANDIDATE,
-  AUTHORIZED_TAB_ITEMS_EMPLOYER,
-  PUBLIC_TAB_ITEMS,
 } from "../../../utils/Constants";
 import Tooltip from "@mui/material/Tooltip";
 import SingleRadialChart from "../../common/SingleRadialChart";
@@ -29,34 +28,28 @@ import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import TextWrapper from "../../common/TextWrapper";
 import { convertDatetimeAgo } from "../../../utils/DateTime";
-import CustomDialog from "../../common/CustomDialog";
-import Login from "../../login/login";
 import { useDispatch } from "react-redux";
-import { login } from "../../../redux/login/loginSlice";
-import { getLocalStorage, setLocalStorage } from "../../../utils/Common";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { setAlert } from "../../../redux/configSlice";
 import { favouriteJob } from "../../../redux/guest/talentSlice";
 import jwt_decode from "jwt-decode";
+import { formatCurrencyWithCommas } from "../../../utils/Currency";
 
 const label1 = "applied";
 const label2 = "shortlisted";
 const label3 = "interviewed";
-export default function JobCard({ index, job }) {
+export default function JobCard({
+  index,
+  job,
+  setQuestions,
+  onHandleClose,
+  setopenApplyJobDialog,
+}) {
   const i18n = locale.en;
   const theme = useTheme();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  let { pathname } = useLocation();
   const [isHovered, setIsHovered] = useState(false);
   const [isStar, setIsStarSelected] = useState(job?.favourite);
-  const [openLoginDialog, setOpenLoginDialog] = useState(false);
-  const [currentTabs, setcurrentTabs] = useState(PUBLIC_TAB_ITEMS);
-  const [activeTab, setActiveTab] = useState(pathname.slice(1));
-  const [questions, setQuestions] = useState([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    Boolean(getLocalStorage("isLoggedIn"))
-  );
   const [arrSlider, setArrSlider] = useState([
     job?.industry_jobs[0],
     job?.type,
@@ -76,12 +69,28 @@ export default function JobCard({ index, job }) {
 
   const handleStar = async () => {
     setIsStarSelected(!isStar);
-    decodedToken?.data?.role_id == 3 &&
+    decodedToken?.data?.role_id === 3 &&
       (await dispatch(favouriteJob({ reqid: job?.job_id })));
   };
   const getquestions = async () => {
     const { payload } = await dispatch(getAllQuestions(job?.job_id));
-    if (payload?.status == "success") {
+    if (payload?.status === "success") {
+      setQuestions(payload.data);
+    } else {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: payload?.message,
+        })
+      );
+    }
+  };
+  const getquestionswithoutlogin = async () => {
+    const { payload } = await dispatch(
+      getAllQuestionsWithoutLogin(job?.job_id)
+    );
+    if (payload?.status === "success") {
       setQuestions(payload.data);
     } else {
       dispatch(
@@ -94,12 +103,25 @@ export default function JobCard({ index, job }) {
     }
   };
   const handleClick = () => {
-    setOpenLoginDialog(true);
-    getquestions();
+    if (decodedToken?.data?.role_id !== 4) {
+      console.log(decodedToken?.data?.role_id);
+      setopenApplyJobDialog(true);
+      if (decodedToken?.data?.role_id === undefined) {
+        getquestionswithoutlogin();
+      } else {
+        getquestions();
+      }
+    } else {
+      dispatch(
+        setAlert({
+          show: true,
+          type: ALERT_TYPE.ERROR,
+          msg: "Login as candidate to apply for this job",
+        })
+      );
+    }
   };
-  const onHandleClose = () => {
-    setOpenLoginDialog(false);
-  };
+
   const handleRightClick = () => {
     setArrSlider2([...arrSlider2.slice(1), ...arrSlider2.slice(0, 1)]);
   };
@@ -108,69 +130,6 @@ export default function JobCard({ index, job }) {
       ...arrSlider2.slice(arrSlider2.length - 1),
       ...arrSlider2.slice(0, arrSlider2.length - 1),
     ]);
-  };
-
-  const onHandleLogin = async (loginData) => {
-    try {
-      const { payload } = await dispatch(login(loginData));
-      if (payload?.status == "success" && payload?.token) {
-        const user = payload.data.role_id;
-        setLocalStorage("token", payload?.token);
-        onHandleClose();
-        const jwt = localStorage?.getItem("token");
-        const parts = jwt?.split(".");
-        if (parts?.length !== 3) {
-          throw new Error("Invalid JWT");
-        }
-        const encodedPayload = parts[1];
-        const decodedPayload = atob(encodedPayload);
-        const payloadData = JSON.parse(decodedPayload);
-        const profileCompletion = payloadData.data?.profile_percent_complete;
-        let tabs;
-        if (user === 4) {
-          if (profileCompletion === 100) {
-            tabs = AUTHORIZED_TAB_ITEMS_EMPLOYER;
-            navigate("/employer/my-jobs", { replace: true });
-            setActiveTab("/employer/my-jobs");
-          } else {
-            tabs = AUTHORIZED_TAB_ITEMS_EMPLOYER;
-            navigate("/employer/my-profile", { replace: true });
-            setActiveTab("/employer/my-profile");
-          }
-        } else {
-          if (profileCompletion === 0) {
-            tabs = AUTHORIZED_TAB_ITEMS_CANDIDATE;
-            navigate("/candidate/my-jobs", { replace: true });
-            setActiveTab("/candidate/my-jobs");
-          } else {
-            tabs = AUTHORIZED_TAB_ITEMS_CANDIDATE;
-            navigate("/candidate/my-profile", { replace: true });
-            setActiveTab("/candidate/my-profile");
-          }
-        }
-        setcurrentTabs(tabs);
-        setLocalStorage("isLoggedIn", true);
-        setLocalStorage("userType", user);
-        setIsLoggedIn(true);
-        dispatch(
-          setAlert({
-            show: true,
-            type: ALERT_TYPE.SUCCESS,
-            msg: "Successfully Login!",
-          })
-        );
-      } else {
-        dispatch(
-          setAlert({
-            show: true,
-            type: ALERT_TYPE.ERROR,
-            msg: payload?.message,
-          })
-        );
-      }
-    } catch (error) {
-      dispatch(setAlert({ show: true }));
-    }
   };
 
   return (
@@ -258,7 +217,7 @@ export default function JobCard({ index, job }) {
               alt="job_star_selected"
               src={job_star_selected}
               onClick={() =>
-                decodedToken?.data?.role_id == "undefined"
+                decodedToken?.data?.role_id === "undefined"
                   ? handleClick
                   : handleStar(job?.job_id)
               }
@@ -276,7 +235,7 @@ export default function JobCard({ index, job }) {
               alt="job_star"
               src={job_star}
               onClick={() =>
-                decodedToken?.data?.role_id == "undefined"
+                decodedToken?.data?.role_id === "undefined"
                   ? handleClick
                   : handleStar(job?.job_id)
               }
@@ -320,7 +279,9 @@ export default function JobCard({ index, job }) {
           placement="top"
         >
           <Link
-            to={`/job-detail/${job?.job_id}`}
+            to={`/jobs/job-detail/${`${
+              job?.town?.name + " " + job?.town?.region?.name
+            }`}/${job?.job_id}`}
             target={"_blank"}
             style={{
               textDecoration: "none",
@@ -352,7 +313,7 @@ export default function JobCard({ index, job }) {
           }}
         >
           {job?.salary?.currency?.symbol}
-          {job?.salary?.max} per month
+          {formatCurrencyWithCommas(job?.salary?.max)} per month
         </Typography>
         <Box sx={{ display: "flex", alignItems: "baseline" }}>
           <Box
@@ -535,7 +496,7 @@ export default function JobCard({ index, job }) {
                     color={
                       item?.trait?.name
                         ? "grayButton200"
-                        : index == 1
+                        : index === 1
                         ? "brownButton"
                         : "purpleButton"
                     }
@@ -652,26 +613,6 @@ export default function JobCard({ index, job }) {
           </Button>
         </Grid>
       </Grid>
-      <CustomDialog
-        show={openLoginDialog}
-        hideButton={false}
-        onDialogClose={onHandleClose}
-        dialogWidth="sm"
-        showFooter={false}
-        title={isLoggedIn ? i18n["login.login"] : i18n["login.signUp"]}
-        isApplyJob
-      >
-        <Typography sx={{ fontSize: "19px", color: "red", mb: 3, ml: 12 }}>
-          {localStorage.getItem("isLoggedIn")
-            ? ""
-            : "To proceed further You need to login first!"}
-        </Typography>
-        {isLoggedIn ? (
-          <ApplyJobs questions={questions} />
-        ) : (
-          <Login handleLogin={onHandleLogin} />
-        )}
-      </CustomDialog>
     </CustomCard>
   );
 }
