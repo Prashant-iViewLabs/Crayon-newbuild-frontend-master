@@ -34,6 +34,7 @@ import { ALERT_TYPE } from "../../../utils/Constants";
 import { convertDatetimeAgo, dateConverter } from "../../../utils/DateTime";
 import { Link, useLocation } from "react-router-dom";
 import jwt_decode from "jwt-decode";
+import ChangeStatusButton from "./ChangeStatusButton";
 
 const label = "grit score";
 const label1 = "applied";
@@ -204,6 +205,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
 
   const location = useLocation();
   const include = location.pathname.includes("pending-jobs");
+  const [expand, setExpand] = useState(false);
 
   const token = localStorage?.getItem("token");
   let decodedToken;
@@ -261,10 +263,17 @@ export default function JobCard({ index, jobContent, getJobList }) {
     }
   };
 
+  const toggleAcordion = () => {
+    setExpand((prev) => !prev);
+  };
+
   return (
-    <StyledAccordion>
+    <StyledAccordion
+      expanded={expand}
+    >
       <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
+
+        expandIcon={<ExpandMoreIcon onClick={toggleAcordion} />}
         aria-controls="panel1a-content"
         id="panel1a-header"
       >
@@ -317,7 +326,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
               >
                 {jobContent?.employer_profile?.company_name?.length >= 30
                   ? jobContent?.employer_profile?.company_name?.slice(0, 30) +
-                    "..."
+                  "..."
                   : jobContent?.employer_profile?.company_name}
               </Typography>
             </Tooltip>
@@ -398,19 +407,22 @@ export default function JobCard({ index, jobContent, getJobList }) {
               ></SmallButton>
             ))}  
             */}
-            <IconButton
-              aria-label="edit"
-              color="blueButton400"
-              sx={{
-                padding: "0 !important",
-                minWidth: "18px !important",
-                "& .MuiSvgIcon-root": {
-                  width: "18px",
-                },
-              }}
-            >
-              <EditIcon />
-            </IconButton>
+            <Link to={`/employer/post-a-job/${jobContent?.job_id}`} target="_blank">
+              <IconButton
+                aria-label="edit"
+                color="blueButton400"
+                sx={{
+                  padding: "0 !important",
+                  minWidth: "18px !important",
+                  "& .MuiSvgIcon-root": {
+                    width: "18px",
+                  },
+                }}
+              >
+                <EditIcon />
+              </IconButton>
+            </Link>
+
           </Box>
         </Box>
 
@@ -542,7 +554,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
             <IconButton>
               <PlayCircleFilledIcon color="grayButton300" />
             </IconButton>
-            {decodedToken?.data?.role_id == 4 ? (
+            {/* {decodedToken?.data?.role_id == 4 ? (
               <SmallButton
                 color={
                   (jobContent?.job_status?.name == "paused" && "redButton") ||
@@ -558,8 +570,8 @@ export default function JobCard({ index, jobContent, getJobList }) {
                 borderRadius="25px"
                 mr="8px"
               ></SmallButton>
-            ) : (
-              <SmallButton
+            ) : ( */}
+              {/* <SmallButton
                 color={
                   (jobContent?.job_status?.name == "paused" && "redButton") ||
                   (jobContent?.job_status?.name == "closed" && "redButton") ||
@@ -568,14 +580,15 @@ export default function JobCard({ index, jobContent, getJobList }) {
                   (jobContent?.job_status?.name == "active" &&
                     "lightGreenButton300")
                 }
-                endIcon={<KeyboardArrowDownIcon />}
+                endIcon={decodedToken?.data?.role_id === 4 ? '':<KeyboardArrowDownIcon />}
                 height={24}
                 fontWeight={700}
                 label={jobContent?.job_status?.name}
                 borderRadius="25px"
                 mr="8px"
-              ></SmallButton>
-            )}
+              ></SmallButton> */}
+              <ChangeStatusButton loggedInUser={decodedToken?.data?.role_id} jobId={index} jobStatus={jobContent?.job_status?.name}/>
+            {/* )} */}
 
             <IconButton
               aria-label="edit"
@@ -1108,7 +1121,7 @@ export default function JobCard({ index, jobContent, getJobList }) {
                       }}
                       variant="contained"
                       color="redButton"
-                      // onClick={() => showManageJob()}
+                    // onClick={() => showManageJob()}
                     >
                       {i18n["pendingJobs.managebtn"]}
                     </Button>

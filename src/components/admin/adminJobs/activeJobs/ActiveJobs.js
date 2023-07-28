@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
@@ -18,8 +18,9 @@ export default function ActiveJobs() {
   const dispatch = useDispatch();
   const [lastKey, setLastKey] = useState("");
   const [totalJob, setTotalJob] = useState(0);
+  const [status, setStatus] = useState(false);
 
-  const getJobList = async (lastkeyy) => {
+  const getJobList = useCallback(async (lastkeyy) => {
     console.log("LAST KEY", lastkeyy);
     const { payload } = await dispatch(getAllJobs(lastkeyy + "&status_id=2"));
     if (payload?.status == "success") {
@@ -34,16 +35,16 @@ export default function ActiveJobs() {
         })
       );
     }
-  };
-
-  const JobCount = async () => {
+  }, [dispatch]);
+  const JobCount = useCallback(async () => {
     const response = await dispatch(getJobCount(2));
     setTotalJob(response.payload.count);
-  };
+  }, [dispatch]);
+
   useEffect(() => {
     getJobList(lastKey);
     JobCount();
-  }, []);
+  }, [JobCount, getJobList, lastKey]);
 
   return (
     <Box sx={{ ml: 6 }}>

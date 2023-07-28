@@ -197,7 +197,7 @@ export default function MyJobsCard({ index, job }) {
               }}
               gutterBottom
             >
-              {job?.title.slice(0, 30)}
+              {job?.title}
             </Typography>
           </Link>
         </Tooltip>

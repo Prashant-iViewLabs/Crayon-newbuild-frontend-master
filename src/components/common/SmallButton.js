@@ -13,6 +13,7 @@ export default function SmallButton({
   startIconMargin,
   onClick,
   value,
+  disabled,
   justifyContent,
   ...props
 }) {
@@ -27,6 +28,7 @@ export default function SmallButton({
         startIcon={startIcon}
         endIcon={endIcon}
         onClick={onClick}
+        disabled={disabled}
         sx={{
           justifyContent: justifyContent,
           fontSize: 12,

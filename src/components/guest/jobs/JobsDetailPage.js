@@ -44,6 +44,8 @@ import { login } from "../../../redux/login/loginSlice";
 import { getLocalStorage, setLocalStorage } from "../../../utils/Common";
 import { getJobDetail } from "../../../redux/guest/jobsSlice";
 
+import DOMPurify from "dompurify";
+
 const label1 = "applied";
 const label2 = "shortlisted";
 const label3 = "interviewed";
@@ -174,6 +176,11 @@ export default function JobsDetailPage() {
     handleCardClick();
   }, []);
 
+  function createMarkup(html) {
+    return {
+      __html: DOMPurify.sanitize(html),
+    };
+  }
   return (
     <Grid
       container
@@ -687,13 +694,13 @@ export default function JobsDetailPage() {
           >
             How you'll role
           </Typography>
-          <Typography
-            sx={{
-              paddingTop: "10px",
-            }}
-          >
-            {job?.description}
-          </Typography>
+          <Box
+            letterSpacing="0.25px"
+            className="preview"
+            m={0}
+            p={0}
+            dangerouslySetInnerHTML={createMarkup(job?.description)}
+          ></Box>
         </Grid>
 
         <Grid
@@ -711,13 +718,13 @@ export default function JobsDetailPage() {
           >
             What you'll do
           </Typography>
-          <Typography
-            sx={{
-              paddingTop: "10px",
-            }}
-          >
-            {job?.role_responsibilty}
-          </Typography>
+          <Box
+            letterSpacing="0.25px"
+            className="preview"
+            m={0}
+            p={0}
+            dangerouslySetInnerHTML={createMarkup(job?.role_responsibilty)}
+          ></Box>
         </Grid>
 
         <Grid
@@ -735,13 +742,13 @@ export default function JobsDetailPage() {
           >
             What you'll need
           </Typography>
-          <Typography
-            sx={{
-              paddingTop: "10px",
-            }}
-          >
-            {job?.role_requirements}
-          </Typography>
+          <Box
+            letterSpacing="0.25px"
+            className="preview"
+            m={0}
+            p={0}
+            dangerouslySetInnerHTML={createMarkup(job?.role_requirements)}
+          ></Box>
         </Grid>
 
         <Grid>
@@ -1100,7 +1107,7 @@ export default function JobsDetailPage() {
                   letterSpacing: "0.75px",
                   //   opacity: 0.8,
                   marginLeft: "16px",
-                  mt:0.5  
+                  mt: 0.5
                 }}
               >
                 {job?.employer_profile?.company_name}
