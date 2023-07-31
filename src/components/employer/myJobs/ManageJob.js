@@ -17,8 +17,17 @@ import { ALERT_TYPE, ERROR_MSG } from "../../../utils/Constants";
 import InfiniteScroll from "react-infinite-scroll-component";
 import SortButton from "./SortButton";
 import { useParams } from "react-router-dom";
-import { Tooltip } from "@mui/material";
+import { Grid } from "@mui/material";
+import ButtonPanel from "../../common/ButtonPanel";
 import Typography from "@mui/material/Typography";
+
+import {
+  
+  TALENT_LEFT_JOB_APPLICATION_BUTTON_GROUP,
+  TALENT_RIGHT_JOB_INFO_BUTTON_GROUP,
+  TALENT_RIGHT_JOB_ACTIVITY_BUTTON_GROUP,
+  JOBS_LEFT_TYPES_BUTTON_GROUP
+} from "../../../utils/Constants";
 
 const StyledBox = (props) => {
   const { children, color } = props;
@@ -174,17 +183,17 @@ export default function ManageJob() {
         item.count > 0
           ? getTalentStatusApplications(jobId, item.id, manage.payload.data)
           : setTalents((prevTalents) => {
-              const updatedTalents = manage.payload.data?.map((item) => {
-                const existingItem = prevTalents.find(
-                  (prevItem) => prevItem.id === item.id
-                );
-                return {
-                  ...item,
-                  items: existingItem ? existingItem.items : [],
-                };
-              });
-              return [...updatedTalents];
+            const updatedTalents = manage.payload.data?.map((item) => {
+              const existingItem = prevTalents.find(
+                (prevItem) => prevItem.id === item.id
+              );
+              return {
+                ...item,
+                items: existingItem ? existingItem.items : [],
+              };
             });
+            return [...updatedTalents];
+          });
       });
     } catch (error) {
       dispatch(setLoading(false));
@@ -314,8 +323,24 @@ export default function ManageJob() {
   };
 
   return (
-    <DragDropContext onDragEnd={(result) => onDragEnd(result)}>
-      {/*
+    <Grid
+      container
+      spacing={0}
+      flexDirection={{ xs: "column", sm: "row" }}
+      justifyContent="space-between"
+      minHeight={"80vh"}
+    >
+
+      <ButtonPanel
+        panelData={TALENT_LEFT_JOB_APPLICATION_BUTTON_GROUP}
+        side="left"
+      // onChangeFilter={jobsFilterLeft}
+      />
+      <Grid Grid xs={12} sm={6} md={8} lg={9} xl={10} sx={{
+        overflowX: "scroll",
+      }}>
+        <DragDropContext onDragEnd={(result) => onDragEnd(result)}>
+          {/*
         <Box sx={{ display: "flex", position: "sticky", left: "0" }}>
         <Typography sx={{ margin: "8px", padding: "20px" }}>Filter</Typography>
         <Box
@@ -358,7 +383,7 @@ export default function ManageJob() {
       </Box>
       */}
 
-      {/*
+          {/*
       <Tooltip arrow title={job?.title} placement="top">
         <Typography
           variant="h5"
@@ -375,70 +400,70 @@ export default function ManageJob() {
         </Typography>
       </Tooltip>
       */}
-      <Box sx={{ display: "flex", maxHeight: "100%" }}>
-        {Object.entries(talents).map(([columnId, column], index) => {
-          return (
-            <Droppable key={`${column?.id}`} droppableId={`${column?.id}`}>
-              {(provided) => (
-                <Box
-                  xs={3}
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  sx={{
-                    flex: "1 1 0px",
-                    margin: "8px",
-                    minWidth: "300px",
-                  }}
-                >
-                  <StyledBox
-                    color={renderColor(column)}
-                    column={column}
-                    jobId={jobId}
-                  >
+          <Box sx={{ display: "flex", maxHeight: "100%" }}>
+            {Object.entries(talents).map(([columnId, column], index) => {
+              return (
+                <Droppable key={`${column?.id}`} droppableId={`${column?.id}`}>
+                  {(provided) => (
                     <Box
+                      xs={3}
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
+                        flex: "1 1 0px",
+                        margin: "8px",
+                        minWidth: "300px",
                       }}
                     >
-                      {column?.status} ({column?.count})
-                    </Box>
-                    <SortButton
-                      jobId={jobId}
-                      jobStatusId={column?.id}
-                      handleSortedValue={handleSortedValue}
-                    />
-                  </StyledBox>
-                  <Box id="talentList" sx={{ height: "100%" }}>
-                    <InfiniteScroll
-                      style={{
-                        height: "100%",
-                        overflowX: "hidden",
-                        scrollbarWidth: "thin",
-                      }}
-                      key={column?.id}
-                      dataLength={talents[index]?.items?.length}
-                      next={() => console.log("HIHIHIHI")}
-                      hasMore={true}
-                      scrollableTarget="talentList"
-                      endMessage={
-                        <p style={{ textAlign: "center" }}>
-                          <b>Yay! You have seen it all</b>
-                        </p>
-                      }
-                    >
-                      {talents[index]?.items?.map((item, index) => (
-                        <DraggableCard
-                          key={item?.user_id}
-                          item={item}
-                          index={index}
-                          droppableId={column?.id}
-                          onDragEnd={onDragEnd}
+                      <StyledBox
+                        color={renderColor(column)}
+                        column={column}
+                        jobId={jobId}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          {column?.status} ({column?.count})
+                        </Box>
+                        <SortButton
                           jobId={jobId}
+                          jobStatusId={column?.id}
+                          handleSortedValue={handleSortedValue}
                         />
-                      ))}
-                      <style>
-                        {`.infinite-scroll-component::-webkit-scrollbar {
+                      </StyledBox>
+                      <Box id="talentList" sx={{ height: "100%" }}>
+                        <InfiniteScroll
+                          style={{
+                            height: "100%",
+                            overflowX: "hidden",
+                            scrollbarWidth: "thin",
+                          }}
+                          key={column?.id}
+                          dataLength={talents[index]?.items?.length}
+                          next={() => console.log("HIHIHIHI")}
+                          hasMore={true}
+                          scrollableTarget="talentList"
+                          endMessage={
+                            <p style={{ textAlign: "center" }}>
+                              <b>Yay! You have seen it all</b>
+                            </p>
+                          }
+                        >
+                          {talents[index]?.items?.map((item, index) => (
+                            <DraggableCard
+                              key={item?.user_id}
+                              item={item}
+                              index={index}
+                              droppableId={column?.id}
+                              onDragEnd={onDragEnd}
+                              jobId={jobId}
+                            />
+                          ))}
+                          <style>
+                            {`.infinite-scroll-component::-webkit-scrollbar {
                             width: 7px !important;
                             background-color: #F5F5F5; /* Set the background color of the scrollbar */
                           }
@@ -450,16 +475,40 @@ export default function ManageJob() {
                           .infinite-scroll-component::-webkit-scrollbar-thumb {
                             background-color: #888c; /* Set the color of the scrollbar thumb */
                           }`}
-                      </style>
-                    </InfiniteScroll>
-                  </Box>
-                  {provided.placeholder}
-                </Box>
-              )}
-            </Droppable>
-          );
-        })}
+                          </style>
+                        </InfiniteScroll>
+                      </Box>
+                      {provided.placeholder}
+                    </Box>
+                  )}
+                </Droppable>
+              );
+            })}
+          </Box>
+
+        </DragDropContext>
+      </Grid>
+      <Box sx={{
+        display: "flex",
+        flexDirection: "column"
+      }}>
+        <ButtonPanel
+          panelData={TALENT_RIGHT_JOB_INFO_BUTTON_GROUP}
+          side="right"
+        // onChangeFilter={jobsFilter}
+        />
+        <ButtonPanel
+          panelData={TALENT_RIGHT_JOB_ACTIVITY_BUTTON_GROUP}
+          side="right"
+        // onChangeFilter={jobsFilter}
+        />
+        <ButtonPanel
+          panelData={JOBS_LEFT_TYPES_BUTTON_GROUP}
+          side="right"
+        // onChangeFilter={jobsFilter}
+        />
       </Box>
-    </DragDropContext>
+
+    </Grid >
   );
 }

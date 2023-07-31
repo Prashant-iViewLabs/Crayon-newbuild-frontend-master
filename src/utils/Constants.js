@@ -232,6 +232,65 @@ export const JOBS_LEFT_TYPES_BUTTON_GROUP = [
   },
 ];
 
+
+
+export const TALENT_LEFT_JOB_APPLICATION_BUTTON_GROUP = [
+  {
+    id: 1,
+    name: "all applications",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 2,
+    name: "complete",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 3,
+    name: "incomplete",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 4,
+    name: "video",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 5,
+    name: "no video",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 6,
+    name: "crayon cam",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 7,
+    name: "no crayon cam",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 8,
+    name: "portfolio",
+    color: "blueButton300",
+    title: true,
+  },
+  {
+    id: 9,
+    name: "no portfolio",
+    color: "blueButton300",
+    title: true,
+  },
+]
+
 export const JOBS_RIGHT_JOB_TYPES_BUTTON_GROUP = [
   {
     id: 1,
@@ -368,6 +427,80 @@ export const TALENT_RIGHT_JOB_TYPES_BUTTON_GROUP = [
   },
 ];
 
+export const TALENT_RIGHT_JOB_INFO_BUTTON_GROUP = [
+  {
+    id: 1,
+    name: "all talents",
+    color: "blueButton700",
+    title: true,
+  },
+  {
+    id: 2,
+    name: "permanent",
+    color: "blueButton700",
+  },
+  {
+    id: 3,
+    name: "contract",
+    color: "blueButton700",
+  },
+  {
+    id: 4,
+    name: "freelance",
+    color: "blueButton700",
+  },
+  {
+    id: 5,
+    name: "in-office",
+    color: "blueButton700",
+  },
+  {
+    id: 6,
+    name: "hybrid",
+    color: "blueButton700",
+  },
+  {
+    id: 7,
+    name: "remote",
+    color: "blueButton700",
+  },
+  {
+    id: 8,
+    name: "gender",
+    color: "blueButton700",
+    title: true,
+  },
+  {
+    id: 9,
+    name: "race",
+    color: "blueButton700",
+    title: true,
+  },
+  {
+    id: 10,
+    name: "age",
+    color: "blueButton700",
+    title: true,
+  },
+  {
+    id: 11,
+    name: "qulification",
+    color: "blueButton700",
+    title: true,
+  },
+  {
+    id: 12,
+    name: "salary",
+    color: "blueButton700",
+    title: true,
+  },
+  {
+    id: 13,
+    name: "experience",
+    color: "blueButton700",
+    title: true,
+  },
+]
 export const TALENT_RIGHT_JOB_ACTIVITY_BUTTON_GROUP = [
   {
     id: 1,
@@ -401,6 +534,8 @@ export const TALENT_RIGHT_JOB_ACTIVITY_BUTTON_GROUP = [
     color: "lightGreenButton300",
   },
 ];
+
+
 
 export const CARD_RIGHT_BUTTON_GROUP = [
   {

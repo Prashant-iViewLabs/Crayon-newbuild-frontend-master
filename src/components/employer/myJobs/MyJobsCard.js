@@ -29,6 +29,8 @@ const label1 = "applicants";
 const label2 = "shortlisted";
 const label3 = "interviews";
 
+
+
 export default function MyJobsCard({ index, job }) {
   const i18n = locale.en;
   const theme = useTheme();
@@ -179,9 +181,8 @@ export default function MyJobsCard({ index, job }) {
           placement="top"
         >
           <Link
-            to={`/employer/job-detail/${`${
-              job?.town?.name + " " + job?.town?.region?.name
-            }`}/${job?.job_id}`}
+            to={`/employer/job-detail/${`${job?.town?.name + " " + job?.town?.region?.name
+              }`}/${job?.job_id}`}
             target={"_blank"}
             style={{
               textDecoration: "none",
@@ -264,18 +265,18 @@ export default function MyJobsCard({ index, job }) {
         <Box
           sx={
             job?.industry?.length <= 1 &&
-            job?.type != "" &&
-            job?.work_setup != ""
+              job?.type != "" &&
+              job?.work_setup != ""
               ? {
-                  width: "100%",
-                  display: "flex",
-                  overflow: "hidden",
-                }
+                width: "100%",
+                display: "flex",
+                overflow: "hidden",
+              }
               : {
-                  width: "100%",
-                  display: "flex",
-                  overflow: "hidden",
-                }
+                width: "100%",
+                display: "flex",
+                overflow: "hidden",
+              }
           }
         >
           {arrSlider
@@ -306,7 +307,7 @@ export default function MyJobsCard({ index, job }) {
           mb={1}
           color={theme.palette.black100}
           letterSpacing="0.25px"
-          // height={"60px"}
+        // height={"60px"}
         >
           <Box
             mt="12px"
@@ -317,7 +318,10 @@ export default function MyJobsCard({ index, job }) {
             m={0}
             p={0}
             dangerouslySetInnerHTML={createMarkup(job?.description)}
-          ></Box>
+          >
+
+            {/* <DescriptionWrapper htmlContent={createMarkup(job?.description)} tooltipText={createMarkup(job?.description)} /> */}
+          </Box>
         </TextWrapper>
       </Grid>
 
@@ -352,17 +356,17 @@ export default function MyJobsCard({ index, job }) {
         <Box
           sx={
             job?.traits?.length <= 1 &&
-            job?.primaryName != "" &&
-            job?.shadowName != ""
+              job?.primaryName != "" &&
+              job?.shadowName != ""
               ? {
-                  width: "65%",
-                  display: "flex",
-                }
+                width: "65%",
+                display: "flex",
+              }
               : {
-                  width: "65%",
-                  display: "flex",
-                  overflow: "hidden",
-                }
+                width: "65%",
+                display: "flex",
+                overflow: "hidden",
+              }
           }
         >
           {arrSlider2
@@ -379,8 +383,8 @@ export default function MyJobsCard({ index, job }) {
                       item?.trait_name
                         ? "grayButton200"
                         : index == 1
-                        ? "brownButton"
-                        : "purpleButton"
+                          ? "brownButton"
+                          : "purpleButton"
                     }
                     height={25}
                     label={item?.trait_name ? item?.trait_name : item}
@@ -469,7 +473,7 @@ export default function MyJobsCard({ index, job }) {
               }}
               variant="contained"
               color="redButton100"
-              // onClick={() => showManageJob()}
+            // onClick={() => showManageJob()}
             >
               {i18n["manageJob.talentBtn"]}
             </Button>

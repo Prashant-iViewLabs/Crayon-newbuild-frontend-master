@@ -16,6 +16,7 @@ export default function TextWrapper({
       TransitionProps={{ timeout: 600 }}
       title={children}
       placement="top"
+
     >
       <Typography
         sx={{
